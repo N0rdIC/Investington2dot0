@@ -1,0 +1,45 @@
+name: daily-signals
+
+on:
+  schedule:
+    # 22:15 UTC = ~30 min after US market close (adjust for DST as needed).
+    # GitHub cron is UTC and best-effort; may run a few minutes late.
+    - cron: "15 22 * * 1-5"
+  workflow_dispatch: {}     # manual trigger button
+
+permissions:
+  contents: write           # allow committing updated state + dashboard
+
+concurrency:
+  group: daily-signals
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install deps
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run daily signal job
+        working-directory: scripts
+        run: python daily.py
+
+      - name: Commit results
+        run: |
+          git config user.name  "signal-bot"
+          git config user.email "signal-bot@users.noreply.github.com"
+          git add state/portfolio.json web/public/dashboard.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "daily signals $(date -u +%Y-%m-%d)"
+            git push
+          fi
