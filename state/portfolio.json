@@ -1,0 +1,102 @@
+{
+  "cash": 20000.0,
+  "start_equity": 100000.0,
+  "open_positions": [
+    {
+      "ticker": "MU",
+      "side": "long",
+      "entry_date": "2026-06-30",
+      "entry_price": 1145.3023454589843,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6884933710098267,
+      "days_held": 0
+    },
+    {
+      "ticker": "BE",
+      "side": "long",
+      "entry_date": "2026-06-30",
+      "entry_price": 279.8398622131347,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6755419373512268,
+      "days_held": 0
+    },
+    {
+      "ticker": "AMD",
+      "side": "long",
+      "entry_date": "2026-06-30",
+      "entry_price": 545.8427923278808,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6728946566581726,
+      "days_held": 0
+    },
+    {
+      "ticker": "LUNR",
+      "side": "long",
+      "entry_date": "2026-06-30",
+      "entry_price": 20.870430610656737,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6614488959312439,
+      "days_held": 0
+    },
+    {
+      "ticker": "AMC",
+      "side": "short",
+      "entry_date": "2026-06-30",
+      "entry_price": 2.0189899809360505,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.678952693939209,
+      "days_held": 0
+    },
+    {
+      "ticker": "LCID",
+      "side": "short",
+      "entry_date": "2026-06-30",
+      "entry_price": 6.446774809360504,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6765133142471313,
+      "days_held": 0
+    },
+    {
+      "ticker": "QBTS",
+      "side": "short",
+      "entry_date": "2026-06-30",
+      "entry_price": 23.33832538127899,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6762921810150146,
+      "days_held": 0
+    },
+    {
+      "ticker": "RGTI",
+      "side": "short",
+      "entry_date": "2026-06-30",
+      "entry_price": 19.01548711872101,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6726445555686951,
+      "days_held": 0
+    }
+  ],
+  "closed_trades": [],
+  "equity_curve": [
+    {
+      "date": "2026-06-30",
+      "equity": 101559.47
+    }
+  ],
+  "last_processed_date": "2026-06-30"
+}
