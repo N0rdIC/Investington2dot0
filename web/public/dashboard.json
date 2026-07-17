@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-07-16T23:10:01.256910+00:00",
-  "model_trained_at": "2026-07-16T23:09:54.480526+00:00",
-  "signal_date": "2019-05-14",
+  "updated_at": "2026-07-17T22:40:24.519620+00:00",
+  "model_trained_at": "2026-07-17T22:36:34.412751+00:00",
+  "signal_date": "2026-06-30",
   "p_star": 0.35555555555555557,
   "barrier": {
     "up": 0.06,
@@ -9,1040 +9,233 @@
     "horizon": 5
   },
   "equity": {
-    "current": 124553.66,
+    "current": 101559.47,
     "start": 100000.0,
-    "total_return_pct": 24.55,
-    "sharpe_est": 2.18,
-    "max_drawdown_pct": -6.09
+    "total_return_pct": 1.56,
+    "sharpe_est": null,
+    "max_drawdown_pct": 0.0
   },
   "stats": {
-    "n_closed": 838,
-    "n_open": 12,
-    "win_rate_pct": 44.5,
-    "avg_win_pct": 5.86,
-    "avg_loss_pct": -4.17
+    "n_closed": 0,
+    "n_open": 8,
+    "win_rate_pct": null,
+    "avg_win_pct": null,
+    "avg_loss_pct": null
   },
   "todays_signals": [
     {
-      "ticker": "S12",
+      "ticker": "MU",
       "side": "long",
-      "p": 0.5962843298912048
+      "p": 0.6884933710098267
     },
     {
-      "ticker": "S00",
+      "ticker": "BE",
       "side": "long",
-      "p": 0.5743618607521057
+      "p": 0.6755419373512268
     },
     {
-      "ticker": "S10",
+      "ticker": "AMD",
       "side": "long",
-      "p": 0.5733917951583862
+      "p": 0.6728946566581726
     },
     {
-      "ticker": "S26",
+      "ticker": "LUNR",
       "side": "long",
-      "p": 0.542945384979248
+      "p": 0.6614488959312439
     },
     {
-      "ticker": "S07",
-      "side": "long",
-      "p": 0.5409752130508423
-    },
-    {
-      "ticker": "S20",
+      "ticker": "AMC",
       "side": "short",
-      "p": 0.5521193742752075
+      "p": 0.678952693939209
     },
     {
-      "ticker": "S16",
+      "ticker": "LCID",
       "side": "short",
-      "p": 0.5287706255912781
+      "p": 0.6765133142471313
     },
     {
-      "ticker": "S29",
+      "ticker": "QBTS",
       "side": "short",
-      "p": 0.5218974947929382
+      "p": 0.6762921810150146
     },
     {
-      "ticker": "S28",
+      "ticker": "RGTI",
       "side": "short",
-      "p": 0.5180111527442932
-    },
-    {
-      "ticker": "S25",
-      "side": "short",
-      "p": 0.5120852589607239
+      "p": 0.6726445555686951
     }
   ],
   "top_scores": [
     {
-      "ticker": "S12",
-      "p_long": 0.596,
-      "p_short": 0.418
+      "ticker": "MU",
+      "p_long": 0.688,
+      "p_short": 0.652
     },
     {
-      "ticker": "S00",
-      "p_long": 0.574,
-      "p_short": 0.408
+      "ticker": "BE",
+      "p_long": 0.676,
+      "p_short": 0.622
     },
     {
-      "ticker": "S10",
-      "p_long": 0.573,
-      "p_short": 0.444
+      "ticker": "AMD",
+      "p_long": 0.673,
+      "p_short": 0.53
     },
     {
-      "ticker": "S26",
-      "p_long": 0.543,
-      "p_short": 0.464
+      "ticker": "LUNR",
+      "p_long": 0.661,
+      "p_short": 0.707
     },
     {
-      "ticker": "S07",
-      "p_long": 0.541,
-      "p_short": 0.427
+      "ticker": "STX",
+      "p_long": 0.654,
+      "p_short": 0.526
     },
     {
-      "ticker": "S17",
-      "p_long": 0.537,
-      "p_short": 0.428
+      "ticker": "WDC",
+      "p_long": 0.652,
+      "p_short": 0.607
     },
     {
-      "ticker": "S01",
-      "p_long": 0.536,
-      "p_short": 0.446
+      "ticker": "MRVL",
+      "p_long": 0.647,
+      "p_short": 0.638
     },
     {
-      "ticker": "S09",
-      "p_long": 0.526,
-      "p_short": 0.478
+      "ticker": "MRNA",
+      "p_long": 0.645,
+      "p_short": 0.543
     },
     {
-      "ticker": "S19",
-      "p_long": 0.523,
-      "p_short": 0.475
+      "ticker": "CIFR",
+      "p_long": 0.643,
+      "p_short": 0.608
     },
     {
-      "ticker": "S27",
-      "p_long": 0.523,
-      "p_short": 0.446
+      "ticker": "ENPH",
+      "p_long": 0.64,
+      "p_short": 0.662
     },
     {
-      "ticker": "S21",
-      "p_long": 0.522,
-      "p_short": 0.461
+      "ticker": "RIOT",
+      "p_long": 0.638,
+      "p_short": 0.569
     },
     {
-      "ticker": "S08",
-      "p_long": 0.521,
-      "p_short": 0.437
+      "ticker": "RKLB",
+      "p_long": 0.636,
+      "p_short": 0.663
     },
     {
-      "ticker": "S02",
-      "p_long": 0.514,
-      "p_short": 0.471
+      "ticker": "LCID",
+      "p_long": 0.633,
+      "p_short": 0.677
     },
     {
-      "ticker": "S15",
-      "p_long": 0.514,
-      "p_short": 0.466
+      "ticker": "QBTS",
+      "p_long": 0.626,
+      "p_short": 0.676
     },
     {
-      "ticker": "S24",
-      "p_long": 0.507,
-      "p_short": 0.479
+      "ticker": "RUN",
+      "p_long": 0.626,
+      "p_short": 0.65
     }
   ],
   "open_positions": [
     {
-      "ticker": "S10",
+      "ticker": "MU",
       "side": "long",
-      "entry_date": "2019-05-13",
-      "entry_price": 531.6634758083079,
+      "entry_date": "2026-06-30",
+      "entry_price": 1145.3023454589843,
       "up": 0.06,
       "down": 0.03,
       "horizon": 5,
-      "p_at_entry": 0.5697628855705261,
-      "days_held": 2
-    },
-    {
-      "ticker": "S24",
-      "side": "short",
-      "entry_date": "2019-05-13",
-      "entry_price": 161.58541996215808,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.5206841230392456,
-      "days_held": 2
-    },
-    {
-      "ticker": "S00",
-      "side": "long",
-      "entry_date": "2019-05-14",
-      "entry_price": 530.4675263956456,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.5623458623886108,
-      "days_held": 1
-    },
-    {
-      "ticker": "S27",
-      "side": "long",
-      "entry_date": "2019-05-14",
-      "entry_price": 641.4304823132732,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.5482897162437439,
-      "days_held": 1
-    },
-    {
-      "ticker": "S16",
-      "side": "short",
-      "entry_date": "2019-05-14",
-      "entry_price": 683.7627995319806,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.5229198336601257,
-      "days_held": 1
-    },
-    {
-      "ticker": "S04",
-      "side": "short",
-      "entry_date": "2019-05-14",
-      "entry_price": 126.70992267977286,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.5144379138946533,
-      "days_held": 1
-    },
-    {
-      "ticker": "S12",
-      "side": "long",
-      "entry_date": "2019-05-15",
-      "entry_price": 117.9079558087596,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.5962843298912048,
+      "p_at_entry": 0.6884933710098267,
       "days_held": 0
     },
     {
-      "ticker": "S26",
+      "ticker": "BE",
       "side": "long",
-      "entry_date": "2019-05-15",
-      "entry_price": 2979.9275485694607,
+      "entry_date": "2026-06-30",
+      "entry_price": 279.8398622131347,
       "up": 0.06,
       "down": 0.03,
       "horizon": 5,
-      "p_at_entry": 0.542945384979248,
+      "p_at_entry": 0.6755419373512268,
       "days_held": 0
     },
     {
-      "ticker": "S07",
+      "ticker": "AMD",
       "side": "long",
-      "entry_date": "2019-05-15",
-      "entry_price": 12.762135965050618,
+      "entry_date": "2026-06-30",
+      "entry_price": 545.8427923278808,
       "up": 0.06,
       "down": 0.03,
       "horizon": 5,
-      "p_at_entry": 0.5409752130508423,
+      "p_at_entry": 0.6728946566581726,
       "days_held": 0
     },
     {
-      "ticker": "S20",
-      "side": "short",
-      "entry_date": "2019-05-15",
-      "entry_price": 144.52245359511772,
+      "ticker": "LUNR",
+      "side": "long",
+      "entry_date": "2026-06-30",
+      "entry_price": 20.870430610656737,
       "up": 0.06,
       "down": 0.03,
       "horizon": 5,
-      "p_at_entry": 0.5521193742752075,
+      "p_at_entry": 0.6614488959312439,
       "days_held": 0
     },
     {
-      "ticker": "S29",
+      "ticker": "AMC",
       "side": "short",
-      "entry_date": "2019-05-15",
-      "entry_price": 37.09096651259817,
+      "entry_date": "2026-06-30",
+      "entry_price": 2.0189899809360505,
       "up": 0.06,
       "down": 0.03,
       "horizon": 5,
-      "p_at_entry": 0.5218974947929382,
+      "p_at_entry": 0.678952693939209,
       "days_held": 0
     },
     {
-      "ticker": "S28",
+      "ticker": "LCID",
       "side": "short",
-      "entry_date": "2019-05-15",
-      "entry_price": 233.05027257269953,
+      "entry_date": "2026-06-30",
+      "entry_price": 6.446774809360504,
       "up": 0.06,
       "down": 0.03,
       "horizon": 5,
-      "p_at_entry": 0.5180111527442932,
+      "p_at_entry": 0.6765133142471313,
+      "days_held": 0
+    },
+    {
+      "ticker": "QBTS",
+      "side": "short",
+      "entry_date": "2026-06-30",
+      "entry_price": 23.33832538127899,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6762921810150146,
+      "days_held": 0
+    },
+    {
+      "ticker": "RGTI",
+      "side": "short",
+      "entry_date": "2026-06-30",
+      "entry_price": 19.01548711872101,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.6726445555686951,
       "days_held": 0
     }
   ],
-  "recent_trades": [
-    {
-      "ticker": "S09",
-      "side": "short",
-      "entry_date": "2019-05-14",
-      "exit_date": "2019-05-15",
-      "entry_price": 186.4236,
-      "exit_price": 175.4134,
-      "days_held": 1,
-      "reason": "profit",
-      "gross_pct": 6.277,
-      "net_pct": 6.125,
-      "pnl_cash": 612.48,
-      "p_at_entry": 0.534
-    },
-    {
-      "ticker": "S29",
-      "side": "short",
-      "entry_date": "2019-05-13",
-      "exit_date": "2019-05-15",
-      "entry_price": 37.6392,
-      "exit_price": 38.8653,
-      "days_held": 2,
-      "reason": "stop",
-      "gross_pct": -3.155,
-      "net_pct": -3.319,
-      "pnl_cash": -331.85,
-      "p_at_entry": 0.516
-    },
-    {
-      "ticker": "S22",
-      "side": "short",
-      "entry_date": "2019-05-13",
-      "exit_date": "2019-05-15",
-      "entry_price": 2620.0585,
-      "exit_price": 2705.4069,
-      "days_held": 2,
-      "reason": "stop",
-      "gross_pct": -3.155,
-      "net_pct": -3.319,
-      "pnl_cash": -331.85,
-      "p_at_entry": 0.523
-    },
-    {
-      "ticker": "S05",
-      "side": "short",
-      "entry_date": "2019-05-10",
-      "exit_date": "2019-05-15",
-      "entry_price": 9629.0306,
-      "exit_price": 9060.34,
-      "days_held": 3,
-      "reason": "profit",
-      "gross_pct": 6.277,
-      "net_pct": 6.101,
-      "pnl_cash": 610.1,
-      "p_at_entry": 0.522
-    },
-    {
-      "ticker": "S12",
-      "side": "long",
-      "entry_date": "2019-05-10",
-      "exit_date": "2019-05-15",
-      "entry_price": 119.0432,
-      "exit_price": 115.1832,
-      "days_held": 3,
-      "reason": "stop",
-      "gross_pct": -3.242,
-      "net_pct": -3.382,
-      "pnl_cash": -338.25,
-      "p_at_entry": 0.587
-    },
-    {
-      "ticker": "S03",
-      "side": "short",
-      "entry_date": "2019-05-08",
-      "exit_date": "2019-05-15",
-      "entry_price": 421.3296,
-      "exit_price": 403.1345,
-      "days_held": 5,
-      "reason": "time",
-      "gross_pct": 4.513,
-      "net_pct": 4.314,
-      "pnl_cash": 431.39,
-      "p_at_entry": 0.528
-    },
-    {
-      "ticker": "S09",
-      "side": "short",
-      "entry_date": "2019-05-13",
-      "exit_date": "2019-05-14",
-      "entry_price": 173.9242,
-      "exit_price": 186.9831,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -6.984,
-      "net_pct": -7.136,
-      "pnl_cash": -713.59,
-      "p_at_entry": 0.514
-    },
-    {
-      "ticker": "S21",
-      "side": "short",
-      "entry_date": "2019-05-13",
-      "exit_date": "2019-05-14",
-      "entry_price": 1536.2205,
-      "exit_price": 1445.4913,
-      "days_held": 1,
-      "reason": "profit",
-      "gross_pct": 6.277,
-      "net_pct": 6.125,
-      "pnl_cash": 612.48,
-      "p_at_entry": 0.518
-    },
-    {
-      "ticker": "S00",
-      "side": "long",
-      "entry_date": "2019-05-13",
-      "exit_date": "2019-05-14",
-      "entry_price": 554.8252,
-      "exit_price": 528.8769,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -4.677,
-      "net_pct": -4.817,
-      "pnl_cash": -481.68,
-      "p_at_entry": 0.548
-    },
-    {
-      "ticker": "S08",
-      "side": "long",
-      "entry_date": "2019-05-13",
-      "exit_date": "2019-05-14",
-      "entry_price": 252.9624,
-      "exit_price": 267.872,
-      "days_held": 1,
-      "reason": "profit",
-      "gross_pct": 5.894,
-      "net_pct": 5.754,
-      "pnl_cash": 575.4,
-      "p_at_entry": 0.563
-    },
-    {
-      "ticker": "S06",
-      "side": "short",
-      "entry_date": "2019-05-10",
-      "exit_date": "2019-05-13",
-      "entry_price": 86.6636,
-      "exit_price": 89.4867,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -3.155,
-      "net_pct": -3.307,
-      "pnl_cash": -330.66,
-      "p_at_entry": 0.516
-    },
-    {
-      "ticker": "S22",
-      "side": "short",
-      "entry_date": "2019-05-10",
-      "exit_date": "2019-05-13",
-      "entry_price": 2548.083,
-      "exit_price": 2631.0868,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -3.155,
-      "net_pct": -3.307,
-      "pnl_cash": -330.66,
-      "p_at_entry": 0.557
-    },
-    {
-      "ticker": "S09",
-      "side": "short",
-      "entry_date": "2019-05-10",
-      "exit_date": "2019-05-13",
-      "entry_price": 183.4861,
-      "exit_price": 189.4632,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -3.155,
-      "net_pct": -3.307,
-      "pnl_cash": -330.66,
-      "p_at_entry": 0.557
-    },
-    {
-      "ticker": "S08",
-      "side": "long",
-      "entry_date": "2019-05-10",
-      "exit_date": "2019-05-13",
-      "entry_price": 264.8824,
-      "exit_price": 252.2039,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -4.786,
-      "net_pct": -4.926,
-      "pnl_cash": -492.64,
-      "p_at_entry": 0.547
-    },
-    {
-      "ticker": "S00",
-      "side": "long",
-      "entry_date": "2019-05-10",
-      "exit_date": "2019-05-13",
-      "entry_price": 579.6824,
-      "exit_price": 553.1615,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -4.575,
-      "net_pct": -4.715,
-      "pnl_cash": -471.51,
-      "p_at_entry": 0.563
-    },
-    {
-      "ticker": "S10",
-      "side": "long",
-      "entry_date": "2019-05-10",
-      "exit_date": "2019-05-13",
-      "entry_price": 538.2185,
-      "exit_price": 520.7668,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -3.242,
-      "net_pct": -3.382,
-      "pnl_cash": -338.25,
-      "p_at_entry": 0.567
-    },
-    {
-      "ticker": "S04",
-      "side": "short",
-      "entry_date": "2019-05-08",
-      "exit_date": "2019-05-13",
-      "entry_price": 122.5898,
-      "exit_price": 126.5832,
-      "days_held": 3,
-      "reason": "stop",
-      "gross_pct": -3.155,
-      "net_pct": -3.33,
-      "pnl_cash": -333.04,
-      "p_at_entry": 0.543
-    },
-    {
-      "ticker": "S25",
-      "side": "long",
-      "entry_date": "2019-05-08",
-      "exit_date": "2019-05-13",
-      "entry_price": 208.6797,
-      "exit_price": 220.9792,
-      "days_held": 3,
-      "reason": "profit",
-      "gross_pct": 5.894,
-      "net_pct": 5.754,
-      "pnl_cash": 575.4,
-      "p_at_entry": 0.561
-    },
-    {
-      "ticker": "S21",
-      "side": "short",
-      "entry_date": "2019-05-09",
-      "exit_date": "2019-05-10",
-      "entry_price": 1514.3586,
-      "exit_price": 1563.6888,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -3.155,
-      "net_pct": -3.307,
-      "pnl_cash": -330.66,
-      "p_at_entry": 0.51
-    },
-    {
-      "ticker": "S22",
-      "side": "short",
-      "entry_date": "2019-05-09",
-      "exit_date": "2019-05-10",
-      "entry_price": 2495.5142,
-      "exit_price": 2576.8056,
-      "days_held": 1,
-      "reason": "stop",
-      "gross_pct": -3.155,
-      "net_pct": -3.307,
-      "pnl_cash": -330.66,
-      "p_at_entry": 0.552
-    }
-  ],
+  "recent_trades": [],
   "equity_curve": [
     {
-      "date": "2018-11-30",
-      "equity": 99873.76
-    },
-    {
-      "date": "2018-12-03",
-      "equity": 98533.13
-    },
-    {
-      "date": "2018-12-04",
-      "equity": 99840.29
-    },
-    {
-      "date": "2018-12-05",
-      "equity": 97728.84
-    },
-    {
-      "date": "2018-12-06",
-      "equity": 98277.56
-    },
-    {
-      "date": "2018-12-07",
-      "equity": 97435.04
-    },
-    {
-      "date": "2018-12-10",
-      "equity": 97686.6
-    },
-    {
-      "date": "2018-12-11",
-      "equity": 98360.2
-    },
-    {
-      "date": "2018-12-12",
-      "equity": 98375.3
-    },
-    {
-      "date": "2018-12-13",
-      "equity": 102124.7
-    },
-    {
-      "date": "2018-12-14",
-      "equity": 102335.36
-    },
-    {
-      "date": "2018-12-17",
-      "equity": 100379.36
-    },
-    {
-      "date": "2018-12-18",
-      "equity": 101068.1
-    },
-    {
-      "date": "2018-12-19",
-      "equity": 101424.96
-    },
-    {
-      "date": "2018-12-20",
-      "equity": 104452.13
-    },
-    {
-      "date": "2018-12-21",
-      "equity": 105505.54
-    },
-    {
-      "date": "2018-12-24",
-      "equity": 106012.33
-    },
-    {
-      "date": "2018-12-25",
-      "equity": 105241.17
-    },
-    {
-      "date": "2018-12-26",
-      "equity": 106846.66
-    },
-    {
-      "date": "2018-12-27",
-      "equity": 104860.93
-    },
-    {
-      "date": "2018-12-28",
-      "equity": 103957.09
-    },
-    {
-      "date": "2018-12-31",
-      "equity": 105831.11
-    },
-    {
-      "date": "2019-01-01",
-      "equity": 103689.26
-    },
-    {
-      "date": "2019-01-02",
-      "equity": 103744.97
-    },
-    {
-      "date": "2019-01-03",
-      "equity": 105917.34
-    },
-    {
-      "date": "2019-01-04",
-      "equity": 103954.87
-    },
-    {
-      "date": "2019-01-07",
-      "equity": 105965.34
-    },
-    {
-      "date": "2019-01-08",
-      "equity": 107838.09
-    },
-    {
-      "date": "2019-01-09",
-      "equity": 106700.75
-    },
-    {
-      "date": "2019-01-10",
-      "equity": 107707.42
-    },
-    {
-      "date": "2019-01-11",
-      "equity": 107348.53
-    },
-    {
-      "date": "2019-01-14",
-      "equity": 107963.44
-    },
-    {
-      "date": "2019-01-15",
-      "equity": 107677.67
-    },
-    {
-      "date": "2019-01-16",
-      "equity": 107200.17
-    },
-    {
-      "date": "2019-01-17",
-      "equity": 105736.66
-    },
-    {
-      "date": "2019-01-18",
-      "equity": 104978.02
-    },
-    {
-      "date": "2019-01-21",
-      "equity": 104674.32
-    },
-    {
-      "date": "2019-01-22",
-      "equity": 103347.54
-    },
-    {
-      "date": "2019-01-23",
-      "equity": 108004.45
-    },
-    {
-      "date": "2019-01-24",
-      "equity": 110482.09
-    },
-    {
-      "date": "2019-01-25",
-      "equity": 110774.5
-    },
-    {
-      "date": "2019-01-28",
-      "equity": 109278.16
-    },
-    {
-      "date": "2019-01-29",
-      "equity": 107848.34
-    },
-    {
-      "date": "2019-01-30",
-      "equity": 110429.94
-    },
-    {
-      "date": "2019-01-31",
-      "equity": 107857.72
-    },
-    {
-      "date": "2019-02-01",
-      "equity": 109452.86
-    },
-    {
-      "date": "2019-02-04",
-      "equity": 108622.64
-    },
-    {
-      "date": "2019-02-05",
-      "equity": 108763.51
-    },
-    {
-      "date": "2019-02-06",
-      "equity": 107190.21
-    },
-    {
-      "date": "2019-02-07",
-      "equity": 107598.04
-    },
-    {
-      "date": "2019-02-08",
-      "equity": 104025.79
-    },
-    {
-      "date": "2019-02-11",
-      "equity": 104492.2
-    },
-    {
-      "date": "2019-02-12",
-      "equity": 104932.19
-    },
-    {
-      "date": "2019-02-13",
-      "equity": 106691.98
-    },
-    {
-      "date": "2019-02-14",
-      "equity": 107393.73
-    },
-    {
-      "date": "2019-02-15",
-      "equity": 106819.35
-    },
-    {
-      "date": "2019-02-18",
-      "equity": 109043.24
-    },
-    {
-      "date": "2019-02-19",
-      "equity": 110250.2
-    },
-    {
-      "date": "2019-02-20",
-      "equity": 110441.85
-    },
-    {
-      "date": "2019-02-21",
-      "equity": 107716.75
-    },
-    {
-      "date": "2019-02-22",
-      "equity": 108206.49
-    },
-    {
-      "date": "2019-02-25",
-      "equity": 107090.1
-    },
-    {
-      "date": "2019-02-26",
-      "equity": 107448.71
-    },
-    {
-      "date": "2019-02-27",
-      "equity": 108906.34
-    },
-    {
-      "date": "2019-02-28",
-      "equity": 107094.68
-    },
-    {
-      "date": "2019-03-01",
-      "equity": 105445.51
-    },
-    {
-      "date": "2019-03-04",
-      "equity": 107103.85
-    },
-    {
-      "date": "2019-03-05",
-      "equity": 105833.02
-    },
-    {
-      "date": "2019-03-06",
-      "equity": 105741.1
-    },
-    {
-      "date": "2019-03-07",
-      "equity": 106557.57
-    },
-    {
-      "date": "2019-03-08",
-      "equity": 106384.69
-    },
-    {
-      "date": "2019-03-11",
-      "equity": 106451.15
-    },
-    {
-      "date": "2019-03-12",
-      "equity": 106208.97
-    },
-    {
-      "date": "2019-03-13",
-      "equity": 106667.09
-    },
-    {
-      "date": "2019-03-14",
-      "equity": 106419.38
-    },
-    {
-      "date": "2019-03-15",
-      "equity": 106088.86
-    },
-    {
-      "date": "2019-03-18",
-      "equity": 105670.22
-    },
-    {
-      "date": "2019-03-19",
-      "equity": 107467.26
-    },
-    {
-      "date": "2019-03-20",
-      "equity": 107778.84
-    },
-    {
-      "date": "2019-03-21",
-      "equity": 108386.44
-    },
-    {
-      "date": "2019-03-22",
-      "equity": 106307.18
-    },
-    {
-      "date": "2019-03-25",
-      "equity": 106481.88
-    },
-    {
-      "date": "2019-03-26",
-      "equity": 110000.05
-    },
-    {
-      "date": "2019-03-27",
-      "equity": 109930.31
-    },
-    {
-      "date": "2019-03-28",
-      "equity": 110096.25
-    },
-    {
-      "date": "2019-03-29",
-      "equity": 111478.06
-    },
-    {
-      "date": "2019-04-01",
-      "equity": 111185.38
-    },
-    {
-      "date": "2019-04-02",
-      "equity": 112478.39
-    },
-    {
-      "date": "2019-04-03",
-      "equity": 112787.28
-    },
-    {
-      "date": "2019-04-04",
-      "equity": 110703.65
-    },
-    {
-      "date": "2019-04-05",
-      "equity": 112738.1
-    },
-    {
-      "date": "2019-04-08",
-      "equity": 114084.89
-    },
-    {
-      "date": "2019-04-09",
-      "equity": 114171.57
-    },
-    {
-      "date": "2019-04-10",
-      "equity": 115125.33
-    },
-    {
-      "date": "2019-04-11",
-      "equity": 115965.97
-    },
-    {
-      "date": "2019-04-12",
-      "equity": 119382.77
-    },
-    {
-      "date": "2019-04-15",
-      "equity": 122416.79
-    },
-    {
-      "date": "2019-04-16",
-      "equity": 122460.69
-    },
-    {
-      "date": "2019-04-17",
-      "equity": 124108.8
-    },
-    {
-      "date": "2019-04-18",
-      "equity": 125229.71
-    },
-    {
-      "date": "2019-04-19",
-      "equity": 124785.93
-    },
-    {
-      "date": "2019-04-22",
-      "equity": 122987.15
-    },
-    {
-      "date": "2019-04-23",
-      "equity": 122116.55
-    },
-    {
-      "date": "2019-04-24",
-      "equity": 123670.71
-    },
-    {
-      "date": "2019-04-25",
-      "equity": 119536.56
-    },
-    {
-      "date": "2019-04-26",
-      "equity": 122483.36
-    },
-    {
-      "date": "2019-04-29",
-      "equity": 122188.85
-    },
-    {
-      "date": "2019-04-30",
-      "equity": 121438.06
-    },
-    {
-      "date": "2019-05-01",
-      "equity": 121200.22
-    },
-    {
-      "date": "2019-05-02",
-      "equity": 121714.13
-    },
-    {
-      "date": "2019-05-03",
-      "equity": 122508.86
-    },
-    {
-      "date": "2019-05-06",
-      "equity": 121470.39
-    },
-    {
-      "date": "2019-05-07",
-      "equity": 123660.52
-    },
-    {
-      "date": "2019-05-08",
-      "equity": 126668.19
-    },
-    {
-      "date": "2019-05-09",
-      "equity": 127919.44
-    },
-    {
-      "date": "2019-05-10",
-      "equity": 126698.25
-    },
-    {
-      "date": "2019-05-13",
-      "equity": 123998.28
-    },
-    {
-      "date": "2019-05-14",
-      "equity": 125279.44
-    },
-    {
-      "date": "2019-05-15",
-      "equity": 124553.66
+      "date": "2026-06-30",
+      "equity": 101559.47
     }
   ]
 }
