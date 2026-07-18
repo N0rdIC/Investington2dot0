@@ -1,23 +1,32 @@
-"""Train and freeze the 3-class barrier model. Run manually (workflow_dispatch).
+"""Train and freeze the 3-class barrier model, with per-side calibration.
 
-ONE multiclass model replaces the two independent binary ones. The softmax
-normalises across {short_win, neither, long_win}, so
+WHY 3 CLASSES
+-------------
+One softmax over {SHORT_WIN, NEITHER, LONG_WIN} instead of two independent
+binary models. The three outcomes are mutually exclusive by construction (a path
+that reaches +6% before -3% crossed +3% on the way, which is the short's stop),
+so the softmax constraint p_short + p_neither + p_long = 1 is not an
+approximation -- it is the truth. Two separate binary models violated it in ~40%
+of predictions.
 
-    p_short + p_neither + p_long = 1
+WHY CALIBRATION IS STILL NEEDED
+-------------------------------
+A class probability is NOT a success rate. Regularisation and the multiclass
+normalisation both distort it. We fit isotonic regression on OUT-OF-SAMPLE
+predictions, separately per side, to map
 
-is guaranteed. With two separate binary models, ~40% of predictions had
-p_long + p_short > 1 -- mathematically impossible, since the two outcomes are
-mutually exclusive (hitting +6% before -3% means the path crossed +3% on the
-way up, which is the short's stop). That inconsistency is now inexpressible
-rather than filtered out after the fact.
+    class probability  ->  observed success rate
 
-Unlike the backtest -- which trains walk-forward models to measure honest
-out-of-sample skill -- this fits ONE model on ALL available history, because
-for live trading you want every scrap of data before predicting tomorrow.
+and only the calibrated value is compared against breakeven P*.
 
-Outputs (committed by the workflow):
+No class weighting is applied: the three classes are near-balanced, and
+weighting would decalibrate the very quantity we need to read as a probability.
+
+Outputs:
     ../model/model3.json
     ../model/meta.json
+    ../model/calibration.json
+    ../model/training_history.json
 """
 from __future__ import annotations
 
@@ -32,8 +41,9 @@ import xgboost as xgb
 from qcs.config import Config
 from qcs.data import load_yahoo
 from qcs.features import build_features, cross_sectional_zscore
-from qcs.labels3 import (joint_barrier_labels, class_distribution,
-                         verify_exhaustive)
+from qcs.labels3 import joint_barrier_labels, class_distribution, verify_exhaustive
+from evaluate3 import evaluate3, print_report3
+from evaluate import append_history, HISTORY
 
 MODEL_DIR = Path(__file__).resolve().parent.parent / "model"
 MODEL_DIR.mkdir(exist_ok=True)
@@ -41,6 +51,31 @@ MODEL_DIR.mkdir(exist_ok=True)
 UP, DOWN = 0.06, 0.03
 VOL_CAP_COLS = {"rvol_252", "rvol_60", "rvol_ratio", "rvol_ratio_long",
                 "vol_of_vol", "mkt_stress", "mkt_stress_z"}
+
+
+def make_fitter(cfg, feature_cols):
+    m = cfg.model
+    fw = np.ones(len(feature_cols))
+    for i, c in enumerate(feature_cols):
+        if c in VOL_CAP_COLS:
+            fw[i] = cfg.model_vol_cap_weight
+
+    def _fit(Xtr, ytr):
+        mdl = xgb.XGBClassifier(
+            n_estimators=m.n_estimators, max_depth=m.max_depth,
+            learning_rate=m.learning_rate, subsample=m.subsample,
+            colsample_bytree=m.colsample_bytree,
+            min_child_weight=m.min_child_weight,
+            reg_lambda=m.reg_lambda, random_state=m.random_state,
+            objective="multi:softprob", num_class=3, eval_metric="mlogloss",
+            feature_weights=fw, n_jobs=4, verbosity=0,
+        )
+        # only the label-overlap correction; NO class weighting (see docstring)
+        mdl.fit(Xtr.to_numpy(), ytr.to_numpy().astype(int),
+                sample_weight=np.full(len(ytr), 1.0 / cfg.label.horizon))
+        return mdl
+
+    return _fit
 
 
 def main():
@@ -53,18 +88,16 @@ def main():
     close, volume = px["close"], px["volume"]
     ok = close.notna().sum() > 400
     close, volume = close.loc[:, ok], volume.loc[:, ok]
-    factor_close, stress_close = fx["close"], sx["close"]
     print(f"  {close.shape[1]} names x {close.shape[0]} days")
 
-    # sanity: the three classes must be mutually exclusive or nothing works
     v = verify_exhaustive(close, UP, DOWN, cfg.label.horizon)
-    print(f"  exclusivity check: overlap={v['overlap']} exclusive={v['exclusive']}")
+    print(f"  exclusivity: overlap={v['overlap']}  exclusive={v['exclusive']}")
     if not v["exclusive"]:
         raise RuntimeError("class definition broken: long/short outcomes overlap")
 
     print("Building features...")
     X = cross_sectional_zscore(
-        build_features(close, volume, factor_close, stress_close=stress_close))
+        build_features(close, volume, fx["close"], stress_close=sx["close"]))
     y = joint_barrier_labels(close, UP, DOWN, cfg.label.horizon)
 
     idx = X.index.intersection(y.index)
@@ -73,61 +106,58 @@ def main():
     Xf, yf = X[mask], y[mask].astype(int)
 
     dist = class_distribution(yf)
-    print(f"  classes: {dist}")
+    p_star = (DOWN + cfg.costs.round_trip) / (UP + DOWN)
+    print(f"  samples={len(Xf)}  classes={dist}  P*={p_star:.4f}")
 
-    # SAMPLE WEIGHTS: only the label-overlap correction, NOT class balancing.
-    #
-    # Why no class weights: the three classes are already nearly balanced
-    # (~29 / 37 / 34), so inverse-frequency weighting corrects nothing -- but it
-    # DOES distort calibration, because it makes the model predict under a
-    # uniform 1/3 prior instead of the true base rates. That matters here in a
-    # way it doesn't for pure ranking: we compare p_long against an ABSOLUTE
-    # threshold P* = (L+c)/(G+L). Decalibrated probabilities make that
-    # comparison meaningless. So we keep the probabilities honest and only
-    # down-weight for the fact that consecutive 5-day labels overlap.
-    sw = np.full(len(yf), 1.0 / cfg.label.horizon)
+    fit = make_fitter(cfg, list(Xf.columns))
 
-    fw = np.ones(Xf.shape[1])
-    for i, c in enumerate(Xf.columns):
-        if c in VOL_CAP_COLS:
-            fw[i] = cfg.model_vol_cap_weight
+    print("\nEvaluating out-of-sample (purged walk-forward)...")
+    metrics = evaluate3(Xf, yf, cfg, fit, p_star, UP, DOWN)
 
-    m = cfg.model
-    print(f"Training 3-class model on {len(Xf)} samples, {Xf.shape[1]} features...")
-    model = xgb.XGBClassifier(
-        n_estimators=m.n_estimators, max_depth=m.max_depth,
-        learning_rate=m.learning_rate, subsample=m.subsample,
-        colsample_bytree=m.colsample_bytree, min_child_weight=m.min_child_weight,
-        reg_lambda=m.reg_lambda, random_state=m.random_state,
-        objective="multi:softprob", num_class=3, eval_metric="mlogloss",
-        feature_weights=fw, n_jobs=4, verbosity=0,
-    )
-    model.fit(Xf.to_numpy(), yf.to_numpy(), sample_weight=sw)
+    prev = None
+    if HISTORY.exists():
+        try:
+            h = json.loads(HISTORY.read_text())
+            prev = h[-1].get("metrics") if h else None
+        except (json.JSONDecodeError, IndexError, AttributeError):
+            prev = None
+    print_report3(metrics, prev)
+
+    print(f"\nFitting final model on all {len(Xf)} samples...")
+    model = fit(Xf, yf)
     model.save_model(str(MODEL_DIR / "model3.json"))
 
-    p_star = (DOWN + cfg.costs.round_trip) / (UP + DOWN)
     meta = {
-        "model_type": "3class",
+        "model_type": "3class_calibrated",
         "trained_at": datetime.now(timezone.utc).isoformat(),
         "features": list(Xf.columns),
         "universe": list(close.columns),
         "up": UP, "down": DOWN, "horizon": cfg.label.horizon,
         "p_star": p_star,
+        "class_distribution": dist,
+        "threshold_long": metrics.get("threshold_long"),
+        "threshold_short": metrics.get("threshold_short"),
         "train_start": str(close.index[0].date()),
         "train_end": str(close.index[-1].date()),
         "n_samples": int(len(Xf)),
-        "class_distribution": dist,
     }
     (MODEL_DIR / "meta.json").write_text(json.dumps(meta, indent=2))
 
-    # remove stale two-model artifacts so daily.py can't silently load them
+    append_history({
+        "trained_at": meta["trained_at"],
+        "train_start": meta["train_start"], "train_end": meta["train_end"],
+        "n_samples": meta["n_samples"], "n_names": len(meta["universe"]),
+        "n_features": len(meta["features"]),
+        "metrics": metrics,
+    })
+
     for old in ("model_long.json", "model_short.json"):
         p = MODEL_DIR / old
         if p.exists():
-            p.unlink()
-            print(f"  removed stale {old}")
+            p.unlink(); print(f"  removed stale {old}")
 
-    print(f"Saved model3.json. p_star={p_star:.3f}")
+    print(f"\nSaved model3.json.  thresholds: long={metrics.get('threshold_long')}"
+          f"  short={metrics.get('threshold_short')}")
 
 
 if __name__ == "__main__":

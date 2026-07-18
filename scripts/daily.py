@@ -59,12 +59,11 @@ def main():
             ref = float(close[s["ticker"]].dropna().iloc[-1])
         except (KeyError, IndexError):
             continue
+        s["ref_price"] = round(ref, 2)
         if s["side"] == "long":
-            s["ref_price"] = round(ref, 2)
             s["target_price"] = round(ref * (1 + meta["up"]), 2)
             s["stop_price"] = round(ref * (1 - meta["down"]), 2)
         else:
-            s["ref_price"] = round(ref, 2)
             s["target_price"] = round(ref * (1 - meta["up"]), 2)
             s["stop_price"] = round(ref * (1 + meta["down"]), 2)
 
@@ -233,19 +232,22 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
         "todays_signals": signals,
         "top_longs": [
             {"ticker": t, "p": round(float(r["p_long"]), 3),
-             "p_opp": round(float(r["p_short"]), 3),
-             "p_neither": round(float(r["p_neither"]), 3),
+             "p_raw": round(float(r["p_long_raw"]), 3),
              "tilt": round(float(r["tilt"]), 3)}
             for t, r in scores.nlargest(10, "p_long").iterrows()
         ],
         "top_shorts": [
             {"ticker": t, "p": round(float(r["p_short"]), 3),
-             "p_opp": round(float(r["p_long"]), 3),
-             "p_neither": round(float(r["p_neither"]), 3),
+             "p_raw": round(float(r["p_short_raw"]), 3),
              "tilt": round(float(-r["tilt"]), 3)}
             for t, r in scores.nlargest(10, "p_short").iterrows()
         ],
+        "threshold": meta.get("threshold_long"),
+        "threshold_short": meta.get("threshold_short"),
         "model_type": meta.get("model_type", "2model"),
+        "training_history": _load_history(),
+        "calibration": _load_calibration_curve(),
+        "sweep": _load_sweep(),
         "open_positions": open_enriched,
         "recent_trades": closed[-25:][::-1],
         "equity_curve": eq[-250:],
@@ -253,6 +255,75 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
     (PUBLIC / "dashboard.json").write_text(json.dumps(dash, indent=2))
     print(f"Dashboard exported: equity {cur_eq:.0f} "
           f"({total_ret * 100:+.1f}%), {len(signals)} signals.")
+
+
+def _load_sweep():
+    """The precision-vs-volume tradeoff from the last training."""
+    h = ROOT / "model" / "training_history.json"
+    if not h.exists():
+        return None
+    try:
+        hist = json.loads(h.read_text())
+    except json.JSONDecodeError:
+        return None
+    if not hist:
+        return None
+    m = hist[-1].get("metrics", {})
+    return {"sweep": m.get("sweep_long", []),
+            "sweep_short": m.get("sweep_short", []),
+            "recommended": m.get("recommended_long"),
+            "recommended_short": m.get("recommended_short"),
+            "precision_by_year": m.get("precision_by_year_long", {}),
+            "p_star_pct": m.get("p_star_pct"),
+            "base_rate_pct": m.get("base_rate_long_pct"),
+            "auc": m.get("auc_long"),
+            "auc_short": m.get("auc_short")}
+
+
+def _load_calibration_curve():
+    """The measured map from softmax score -> actual win rate."""
+    c = ROOT / "model" / "calibration.json"
+    if not c.exists():
+        return None
+    try:
+        d = json.loads(c.read_text())
+    except json.JSONDecodeError:
+        return None
+    return {"curve_long": d.get("curve_long", []),
+            "metrics_long": d.get("metrics_long", {}),
+            "metrics_short": d.get("metrics_short", {})}
+
+
+def _load_history():
+    """Training metrics from every retrain, so the dashboard can show how the
+    model's EXPECTED success rate has evolved -- and compare it to the REALISED
+    rate from paper trading."""
+    h = ROOT / "model" / "training_history.json"
+    if not h.exists():
+        return []
+    try:
+        hist = json.loads(h.read_text())
+    except json.JSONDecodeError:
+        return []
+    out = []
+    for e in hist[-12:]:
+        m = e.get("metrics", {})
+        out.append({
+            "trained_at": e.get("trained_at"),
+            "train_end": e.get("train_end"),
+            "n_samples": e.get("n_samples"),
+            "n_names": e.get("n_names"),
+            "auc_long": m.get("auc_long"),
+            "auc_short": m.get("auc_short"),
+            "expected_P_long_pct": m.get("expected_P_long_pct"),
+            "expected_P_short_pct": m.get("expected_P_short_pct"),
+            "p_star_pct": m.get("p_star_pct"),
+            "edge_vs_pstar_pp": m.get("edge_vs_pstar_pp"),
+            "expected_E_per_trade_pct": m.get("expected_E_per_trade_pct"),
+            "signal_rate_pct": m.get("signal_rate_pct"),
+            "base_rate_long_pct": m.get("base_rate_long_pct"),
+        })
+    return out
 
 
 def _max_dd(eq):

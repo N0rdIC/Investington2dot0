@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trade Signal · Investington board</title>
+<title>Barrier Signal · Paper Desk</title>
 <style>
   :root {
     --bg: #0a0e12;
@@ -67,6 +67,7 @@
           padding-top: 12px; line-height: 1.7; }
   .pnum { font-variant-numeric: tabular-nums; }
   .dim { color: var(--dim); }
+  .ambig { color: var(--accent); opacity: 0.75; }
   .glpmain { padding: 16px 18px; }
   .formula {
     color: var(--accent); font-size: 12px; letter-spacing: 0.5px;
@@ -106,17 +107,20 @@
     </div>
   </div>
 
+  <div class="section-title">Model quality · expected vs realised</div>
+  <div id="modelq"></div>
+
   <div class="section-title">Realised edge · G / L / P from closed trades</div>
   <div id="glp"></div>
 
   <div class="cols">
     <div>
-      <div class="section-title">Model ranking · top longs</div>
+      <div class="section-title">Model ranking · calibrated P(win)</div>
       <div id="scoresLong"></div>
     </div>
     <div>
-      <div class="section-title">Model ranking · top shorts</div>
-      <div id="scoresShort"></div>
+      <div class="section-title">Threshold sweep · precision vs volume</div>
+      <div id="sweep"></div>
     </div>
   </div>
 
@@ -162,15 +166,16 @@ async function load() {
   drawChart(d.equity_curve || []);
 
   document.getElementById("signals").innerHTML = d.todays_signals?.length ? table(
-    ["Ticker","Side","Ref","Target","Stop","P"],
+    ["Ticker","Side","Ref","Target","Stop","P","Tilt"],
     d.todays_signals.map(s=>[
       s.ticker, `<span class="tag ${s.side}">${s.side}</span>`,
       `<span class="pnum dim">${s.ref_price!==undefined?F(s.ref_price):"—"}</span>`,
       `<span class="pnum pos">${s.target_price!==undefined?F(s.target_price):"—"}</span>`,
       `<span class="pnum neg">${s.stop_price!==undefined?F(s.stop_price):"—"}</span>`,
-      `<span class="pnum">${s.p.toFixed(3)}</span>`
-    ]), [0,0,1,1,1,1]
-  ) : `<div class="empty">No signals cleared P* today.</div>`;
+      `<span class="pnum">${s.p.toFixed(3)}</span>`,
+      tiltCell(s.tilt!==undefined ? Math.abs(s.tilt) * (s.side==="long"?1:-1) : undefined)
+    ]), [0,0,1,1,1,1,1]
+  ) : `<div class="empty">No signals passed both the expectancy and direction gates today.</div>`;
 
   document.getElementById("open").innerHTML = d.open_positions?.length ? table(
     ["Ticker","Side","Entry","Target","Stop","Left"],
@@ -183,23 +188,35 @@ async function load() {
     ]), [0,0,1,1,1,1]
   ) : `<div class="empty">No open positions.</div>`;
 
+  const thr = d.threshold;
   document.getElementById("scoresLong").innerHTML = table(
-    ["Ticker","P(long)"],
+    ["Ticker","P(win) cal","raw","vs thresh"],
     (d.top_longs||[]).map(s=>[
       s.ticker,
-      `<span class="pnum ${s.p>d.p_star?'pos':''}">${s.p.toFixed(3)}</span>`
-    ]), [0,1]
+      `<span class="pnum ${thr!=null && s.p>=thr?'pos':'dim'}">${s.p.toFixed(3)}</span>`,
+      `<span class="pnum dim">${s.p_raw!=null?s.p_raw.toFixed(3):"—"}</span>`,
+      thr==null ? `<span class="dim">—</span>`
+        : `<span class="pnum ${s.p>=thr?'pos':'neg'}">${s.p>=thr?"PASS":((s.p-thr)*100).toFixed(1)+"pp"}</span>`
+    ]), [0,1,1,1]
   );
 
-  document.getElementById("scoresShort").innerHTML = table(
-    ["Ticker","P(short)"],
-    (d.top_shorts||[]).map(s=>[
-      s.ticker,
-      `<span class="pnum ${s.p>d.p_star?'neg':''}">${s.p.toFixed(3)}</span>`
-    ]), [0,1]
-  );
+  const sw = d.sweep;
+  document.getElementById("sweep").innerHTML = (sw && sw.sweep && sw.sweep.length) ? table(
+    ["Thresh","Precision","Edge","/year","E/trade"],
+    sw.sweep.map(r=>{
+      const isRec = sw.recommended && r.threshold===sw.recommended.threshold;
+      return [
+        `<span class="pnum ${isRec?'':'dim'}">${r.threshold.toFixed(3)}${isRec?" ◄":""}</span>`,
+        `<span class="pnum">${r.precision_pct.toFixed(1)}%</span>`,
+        `<span class="pnum ${r.edge_vs_pstar_pp>0?'pos':'neg'}">${r.edge_vs_pstar_pp>0?"+":""}${r.edge_vs_pstar_pp.toFixed(1)}pp</span>`,
+        `<span class="pnum dim">${r.per_year.toFixed(0)}</span>`,
+        `<span class="pnum ${r.E_trade_pct>0?'pos':'neg'}">${r.E_trade_pct>0?"+":""}${r.E_trade_pct.toFixed(2)}%</span>`
+      ];
+    }), [1,1,1,1,1]
+  ) : `<div class="empty">No sweep yet — run retrain-model.</div>`;
 
   renderGLP(d);
+  renderModelQ(d);
 
   document.getElementById("trades").innerHTML = d.recent_trades?.length ? table(
     ["Ticker","Side","In","Out","Days","Exit","Net"],
@@ -264,6 +281,90 @@ function renderGLP(d) {
         `<span class="pnum ${cls(v.avg_net_pct)}">${pct(v.avg_net_pct)}</span>`]),
       [0,1,1,1])}</div>
   </div>`;
+}
+
+function renderModelQ(d) {
+  const el = document.getElementById("modelq");
+  const h = d.training_history || [];
+  if (!h.length) {
+    el.innerHTML = `<div class="empty">No training metrics yet — run the retrain-model workflow to generate them.</div>`;
+    return;
+  }
+  const cur = h[h.length-1];
+  const prev = h.length>1 ? h[h.length-2] : null;
+  const dlt = (k,f=2) => {
+    if (!prev || prev[k]==null || cur[k]==null) return "";
+    const v = cur[k]-prev[k];
+    return ` <span class="${v>=0?'pos':'neg'}" style="font-size:10px">(${v>=0?"+":""}${v.toFixed(f)})</span>`;
+  };
+
+  // the headline comparison: what the model PROMISED vs what we GOT
+  const expP = cur.expected_P_long_pct;
+  const realP = d.glp ? d.glp.P_realized_pct : null;
+  const gap = (expP!=null && realP!=null) ? (realP-expP) : null;
+
+  el.innerHTML = `
+  <div class="card glpmain">
+    <div class="formula">expected success rate, measured out-of-sample at the trading threshold</div>
+    <div class="glprow">
+      <div><div class="label">Expected P (long)</div>
+           <div class="value">${expP!=null?expP+"%":"—"}${dlt('expected_P_long_pct')}</div>
+           <div class="label">breakeven ${cur.p_star_pct ?? "—"}%</div></div>
+      <div><div class="label">Realised P (live)</div>
+           <div class="value ${realP!=null && expP!=null ? (realP>=expP?'pos':'neg') : ''}">${realP!=null?realP+"%":"—"}</div>
+           <div class="label">${gap!=null?(gap>=0?"+":"")+gap.toFixed(1)+"pp vs expected":"awaiting trades"}</div></div>
+      <div><div class="label">AUC long</div>
+           <div class="value">${cur.auc_long!=null?cur.auc_long.toFixed(3):"—"}${dlt('auc_long',3)}</div>
+           <div class="label">0.50 = no skill</div></div>
+      <div><div class="label">Expected E / trade</div>
+           <div class="value ${cur.expected_E_per_trade_pct>=0?'pos':'neg'}">${cur.expected_E_per_trade_pct!=null?pct(cur.expected_E_per_trade_pct):"—"}</div>
+           <div class="label">signal rate ${cur.signal_rate_pct ?? "—"}%</div></div>
+    </div>
+    ${gap!=null ? `<div class="verdict ${gap>=-2?'pos':'neg'}">${
+      gap>=-2 ? "realised P is tracking the model's expectation — fills are behaving"
+              : `realised P is ${Math.abs(gap).toFixed(1)}pp below expected — look at slippage, not the model`
+    }</div>` : ""}
+  </div>
+  ${h.length>1 ? `<div style="margin-top:12px">${table(
+    ["Trained","Data to","AUC L","Exp P","P*","Edge","E/trade","Names"],
+    h.slice().reverse().map(e=>[
+      e.trained_at ? e.trained_at.slice(0,10) : "—",
+      e.train_end ?? "—",
+      e.auc_long!=null?e.auc_long.toFixed(3):"—",
+      e.expected_P_long_pct!=null?e.expected_P_long_pct+"%":"—",
+      e.p_star_pct!=null?e.p_star_pct+"%":"—",
+      e.edge_vs_pstar_pp!=null?`<span class="${e.edge_vs_pstar_pp>0?'pos':'neg'}">${e.edge_vs_pstar_pp>0?"+":""}${e.edge_vs_pstar_pp}pp</span>`:"—",
+      e.expected_E_per_trade_pct!=null?pct(e.expected_E_per_trade_pct):"—",
+      e.n_names ?? "—"
+    ]), [0,0,1,1,1,1,1,1])}</div>` : ""}
+  ${d.calibration && d.calibration.curve_long && d.calibration.curve_long.length ? `
+  <div style="margin-top:12px">
+    <div class="card">
+      <div class="formula">calibration · softmax score → actual win rate</div>
+      <div class="barbadge" style="margin-bottom:10px">
+        ECE ${d.calibration.metrics_long.ece ?? "—"} ·
+        bias ${d.calibration.metrics_long.bias>=0?"+":""}${d.calibration.metrics_long.bias ?? "—"}
+        (${d.calibration.metrics_long.bias>0?"under":"over"}-confident) ·
+        base rate ${(d.calibration.metrics_long.base_rate*100).toFixed(1)}%
+      </div>
+      ${table(["Score","Actual win rate","Lift","N"],
+        d.calibration.curve_long.map(r=>[
+          `<span class="pnum dim">${r.predicted.toFixed(3)}</span>`,
+          `<span class="pnum ${r.observed>r.predicted?'pos':'neg'}">${(r.observed*100).toFixed(1)}%</span>`,
+          `<span class="pnum ${r.lift>1?'pos':'dim'}">${r.lift.toFixed(2)}×</span>`,
+          `<span class="pnum dim">${r.n}</span>`
+        ]), [1,1,1,1])}
+    </div>
+  </div>` : ""}`;
+}
+
+function tiltCell(t) {
+  if (t===undefined || t===null) return `<span class="dim">—</span>`;
+  // low |tilt| = model says "big move coming" but not which way = volatility,
+  // not direction. Flag it so you can see the contradiction.
+  const amb = Math.abs(t) < 0.10;
+  return `<span class="pnum ${amb?'ambig':(t>0?'pos':'neg')}" ${amb?'title="ambiguous: both barriers likely -- volatility, not direction"':''}>`
+       + `${t>=0?"+":""}${t.toFixed(3)}${amb?" ⚠":""}</span>`;
 }
 
 function table(headers, rows, align) {
