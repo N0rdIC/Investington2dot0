@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-18T07:57:54.124166+00:00",
-  "model_trained_at": "2026-07-17T22:36:34.412751+00:00",
+  "updated_at": "2026-07-18T09:03:56.638575+00:00",
+  "model_trained_at": "2026-07-18T09:02:38.181502+00:00",
   "signal_date": "2026-06-30",
   "p_star": 0.35555555555555557,
   "barrier": {
@@ -9,15 +9,15 @@
     "horizon": 5
   },
   "equity": {
-    "current": 101559.47,
+    "current": 100078.47,
     "start": 100000.0,
-    "total_return_pct": 1.56,
+    "total_return_pct": 0.08,
     "sharpe_est": null,
     "max_drawdown_pct": 0.0
   },
   "stats": {
     "n_closed": 0,
-    "n_open": 8,
+    "n_open": 1,
     "win_rate_pct": null,
     "avg_win_pct": null,
     "avg_loss_pct": null
@@ -27,152 +27,160 @@
     {
       "ticker": "MU",
       "side": "long",
-      "p": 0.6884933710098267,
+      "p": 0.37989410758018494,
+      "p_opp": 0.29891684651374817,
+      "p_neither": 0.3211890757083893,
+      "tilt": 0.119,
       "ref_price": 1154.11,
       "target_price": 1223.36,
       "stop_price": 1119.49
-    },
-    {
-      "ticker": "BE",
-      "side": "long",
-      "p": 0.6755419373512268,
-      "ref_price": 302.7,
-      "target_price": 320.86,
-      "stop_price": 293.62
-    },
-    {
-      "ticker": "AMD",
-      "side": "long",
-      "p": 0.6728946566581726,
-      "ref_price": 580.91,
-      "target_price": 615.76,
-      "stop_price": 563.48
-    },
-    {
-      "ticker": "LUNR",
-      "side": "long",
-      "p": 0.6614488959312439,
-      "ref_price": 21.39,
-      "target_price": 22.67,
-      "stop_price": 20.75
-    },
-    {
-      "ticker": "AMC",
-      "side": "short",
-      "p": 0.678952693939209,
-      "ref_price": 1.9,
-      "target_price": 1.79,
-      "stop_price": 1.96
-    },
-    {
-      "ticker": "LCID",
-      "side": "short",
-      "p": 0.6765133142471313,
-      "ref_price": 6.69,
-      "target_price": 6.29,
-      "stop_price": 6.89
-    },
-    {
-      "ticker": "QBTS",
-      "side": "short",
-      "p": 0.6762921810150146,
-      "ref_price": 23.99,
-      "target_price": 22.55,
-      "stop_price": 24.71
-    },
-    {
-      "ticker": "RGTI",
-      "side": "short",
-      "p": 0.6726445555686951,
-      "ref_price": 19.32,
-      "target_price": 18.16,
-      "stop_price": 19.9
     }
   ],
   "top_longs": [
     {
       "ticker": "MU",
-      "p": 0.688
+      "p": 0.38,
+      "p_opp": 0.299,
+      "p_neither": 0.321,
+      "tilt": 0.119
     },
     {
       "ticker": "BE",
-      "p": 0.676
-    },
-    {
-      "ticker": "AMD",
-      "p": 0.673
-    },
-    {
-      "ticker": "LUNR",
-      "p": 0.661
-    },
-    {
-      "ticker": "STX",
-      "p": 0.66
+      "p": 0.365,
+      "p_opp": 0.302,
+      "p_neither": 0.334,
+      "tilt": 0.094
     },
     {
       "ticker": "WDC",
-      "p": 0.655
+      "p": 0.334,
+      "p_opp": 0.268,
+      "p_neither": 0.398,
+      "tilt": 0.11
     },
     {
       "ticker": "MRVL",
-      "p": 0.647
+      "p": 0.333,
+      "p_opp": 0.271,
+      "p_neither": 0.396,
+      "tilt": 0.102
     },
     {
-      "ticker": "MRNA",
-      "p": 0.645
+      "ticker": "LUNR",
+      "p": 0.327,
+      "p_opp": 0.352,
+      "p_neither": 0.322,
+      "tilt": -0.037
     },
     {
-      "ticker": "CIFR",
-      "p": 0.643
+      "ticker": "SMCI",
+      "p": 0.322,
+      "p_opp": 0.316,
+      "p_neither": 0.363,
+      "tilt": 0.01
     },
     {
-      "ticker": "ENPH",
-      "p": 0.64
+      "ticker": "STX",
+      "p": 0.32,
+      "p_opp": 0.216,
+      "p_neither": 0.464,
+      "tilt": 0.194
+    },
+    {
+      "ticker": "RKLB",
+      "p": 0.312,
+      "p_opp": 0.328,
+      "p_neither": 0.36,
+      "tilt": -0.026
+    },
+    {
+      "ticker": "QBTS",
+      "p": 0.309,
+      "p_opp": 0.342,
+      "p_neither": 0.349,
+      "tilt": -0.05
+    },
+    {
+      "ticker": "AMD",
+      "p": 0.309,
+      "p_opp": 0.201,
+      "p_neither": 0.49,
+      "tilt": 0.212
     }
   ],
   "top_shorts": [
     {
       "ticker": "LUNR",
-      "p": 0.707
-    },
-    {
-      "ticker": "AMC",
-      "p": 0.679
+      "p": 0.352,
+      "p_opp": 0.327,
+      "p_neither": 0.322,
+      "tilt": 0.037
     },
     {
       "ticker": "LCID",
-      "p": 0.677
-    },
-    {
-      "ticker": "QBTS",
-      "p": 0.676
-    },
-    {
-      "ticker": "RGTI",
-      "p": 0.673
-    },
-    {
-      "ticker": "ASTS",
-      "p": 0.67
-    },
-    {
-      "ticker": "IONQ",
-      "p": 0.668
-    },
-    {
-      "ticker": "RKLB",
-      "p": 0.663
+      "p": 0.349,
+      "p_opp": 0.297,
+      "p_neither": 0.354,
+      "tilt": 0.081
     },
     {
       "ticker": "ENPH",
-      "p": 0.662
+      "p": 0.345,
+      "p_opp": 0.304,
+      "p_neither": 0.351,
+      "tilt": 0.063
     },
     {
-      "ticker": "CHPT",
-      "p": 0.657
+      "ticker": "QBTS",
+      "p": 0.342,
+      "p_opp": 0.309,
+      "p_neither": 0.349,
+      "tilt": 0.05
+    },
+    {
+      "ticker": "ASTS",
+      "p": 0.334,
+      "p_opp": 0.307,
+      "p_neither": 0.359,
+      "tilt": 0.042
+    },
+    {
+      "ticker": "AMC",
+      "p": 0.331,
+      "p_opp": 0.293,
+      "p_neither": 0.375,
+      "tilt": 0.06
+    },
+    {
+      "ticker": "RGTI",
+      "p": 0.331,
+      "p_opp": 0.3,
+      "p_neither": 0.369,
+      "tilt": 0.05
+    },
+    {
+      "ticker": "RKLB",
+      "p": 0.328,
+      "p_opp": 0.312,
+      "p_neither": 0.36,
+      "tilt": 0.026
+    },
+    {
+      "ticker": "MSTR",
+      "p": 0.324,
+      "p_opp": 0.279,
+      "p_neither": 0.397,
+      "tilt": 0.075
+    },
+    {
+      "ticker": "RUN",
+      "p": 0.322,
+      "p_opp": 0.302,
+      "p_neither": 0.376,
+      "tilt": 0.033
     }
   ],
+  "model_type": "3class",
   "open_positions": [
     {
       "ticker": "MU",
@@ -182,108 +190,10 @@
       "up": 0.06,
       "down": 0.03,
       "horizon": 5,
-      "p_at_entry": 0.6884933710098267,
+      "p_at_entry": 0.37989410758018494,
       "days_held": 0,
       "target_price": 1214.02,
       "stop_price": 1110.94,
-      "days_left": 5
-    },
-    {
-      "ticker": "BE",
-      "side": "long",
-      "entry_date": "2026-06-30",
-      "entry_price": 279.8398622131347,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.6755419373512268,
-      "days_held": 0,
-      "target_price": 296.63,
-      "stop_price": 271.44,
-      "days_left": 5
-    },
-    {
-      "ticker": "AMD",
-      "side": "long",
-      "entry_date": "2026-06-30",
-      "entry_price": 545.8427923278808,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.6728946566581726,
-      "days_held": 0,
-      "target_price": 578.59,
-      "stop_price": 529.47,
-      "days_left": 5
-    },
-    {
-      "ticker": "LUNR",
-      "side": "long",
-      "entry_date": "2026-06-30",
-      "entry_price": 20.870430610656737,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.6614488959312439,
-      "days_held": 0,
-      "target_price": 22.12,
-      "stop_price": 20.24,
-      "days_left": 5
-    },
-    {
-      "ticker": "AMC",
-      "side": "short",
-      "entry_date": "2026-06-30",
-      "entry_price": 2.0189899809360505,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.678952693939209,
-      "days_held": 0,
-      "target_price": 1.9,
-      "stop_price": 2.08,
-      "days_left": 5
-    },
-    {
-      "ticker": "LCID",
-      "side": "short",
-      "entry_date": "2026-06-30",
-      "entry_price": 6.446774809360504,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.6765133142471313,
-      "days_held": 0,
-      "target_price": 6.06,
-      "stop_price": 6.64,
-      "days_left": 5
-    },
-    {
-      "ticker": "QBTS",
-      "side": "short",
-      "entry_date": "2026-06-30",
-      "entry_price": 23.33832538127899,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.6762921810150146,
-      "days_held": 0,
-      "target_price": 21.94,
-      "stop_price": 24.04,
-      "days_left": 5
-    },
-    {
-      "ticker": "RGTI",
-      "side": "short",
-      "entry_date": "2026-06-30",
-      "entry_price": 19.01548711872101,
-      "up": 0.06,
-      "down": 0.03,
-      "horizon": 5,
-      "p_at_entry": 0.6726445555686951,
-      "days_held": 0,
-      "target_price": 17.87,
-      "stop_price": 19.59,
       "days_left": 5
     }
   ],
@@ -291,7 +201,7 @@
   "equity_curve": [
     {
       "date": "2026-06-30",
-      "equity": 101559.47
+      "equity": 100078.47
     }
   ]
 }

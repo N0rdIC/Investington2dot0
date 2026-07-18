@@ -1,0 +1,25 @@
+{
+  "cash": 90000.0,
+  "start_equity": 100000.0,
+  "open_positions": [
+    {
+      "ticker": "MU",
+      "side": "long",
+      "entry_date": "2026-06-30",
+      "entry_price": 1145.3023454589843,
+      "up": 0.06,
+      "down": 0.03,
+      "horizon": 5,
+      "p_at_entry": 0.37989410758018494,
+      "days_held": 0
+    }
+  ],
+  "closed_trades": [],
+  "equity_curve": [
+    {
+      "date": "2026-06-30",
+      "equity": 100078.47
+    }
+  ],
+  "last_processed_date": "2026-06-30"
+}
