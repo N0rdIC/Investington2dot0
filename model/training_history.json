@@ -1,0 +1,398 @@
+[
+  {
+    "trained_at": "2026-07-18T09:40:29.818243+00:00",
+    "train_start": "2005-01-03",
+    "train_end": "2026-06-30",
+    "n_samples": 390271,
+    "n_names": 110,
+    "n_features": 46,
+    "metrics": {
+      "auc_long": 0.6336,
+      "auc_short": 0.6329,
+      "base_rate_long_pct": 20.54,
+      "base_rate_short_pct": 19.06,
+      "p_star_pct": 35.56,
+      "n_eval_samples": 367934,
+      "n_folds": 4,
+      "n_years": 19.5,
+      "calibration_long": {
+        "brier": 0.15866,
+        "ece": 0.03498,
+        "bias": 0.03498,
+        "base_rate": 0.20544,
+        "mean_pred": 0.17047
+      },
+      "calibration_short": {
+        "brier": 0.14983,
+        "ece": 0.03823,
+        "bias": 0.03823,
+        "base_rate": 0.19056,
+        "mean_pred": 0.15232
+      },
+      "calibration_curve_long": [
+        {
+          "bin": 0,
+          "n": 36794,
+          "p_lo": 0.0076,
+          "p_hi": 0.0651,
+          "predicted": 0.0466,
+          "observed": 0.1192,
+          "lift": 0.58
+        },
+        {
+          "bin": 1,
+          "n": 36793,
+          "p_lo": 0.0651,
+          "p_hi": 0.0892,
+          "predicted": 0.0776,
+          "observed": 0.1312,
+          "lift": 0.639
+        },
+        {
+          "bin": 2,
+          "n": 36793,
+          "p_lo": 0.0892,
+          "p_hi": 0.1096,
+          "predicted": 0.0995,
+          "observed": 0.1367,
+          "lift": 0.665
+        },
+        {
+          "bin": 3,
+          "n": 36794,
+          "p_lo": 0.1096,
+          "p_hi": 0.1299,
+          "predicted": 0.1196,
+          "observed": 0.1427,
+          "lift": 0.695
+        },
+        {
+          "bin": 4,
+          "n": 36793,
+          "p_lo": 0.1299,
+          "p_hi": 0.1532,
+          "predicted": 0.1412,
+          "observed": 0.1629,
+          "lift": 0.793
+        },
+        {
+          "bin": 5,
+          "n": 36793,
+          "p_lo": 0.1532,
+          "p_hi": 0.1825,
+          "predicted": 0.1672,
+          "observed": 0.1868,
+          "lift": 0.909
+        },
+        {
+          "bin": 6,
+          "n": 36794,
+          "p_lo": 0.1825,
+          "p_hi": 0.2178,
+          "predicted": 0.1998,
+          "observed": 0.2347,
+          "lift": 1.143
+        },
+        {
+          "bin": 7,
+          "n": 36793,
+          "p_lo": 0.2178,
+          "p_hi": 0.2581,
+          "predicted": 0.2374,
+          "observed": 0.2802,
+          "lift": 1.364
+        },
+        {
+          "bin": 8,
+          "n": 36793,
+          "p_lo": 0.2581,
+          "p_hi": 0.3032,
+          "predicted": 0.2803,
+          "observed": 0.318,
+          "lift": 1.548
+        },
+        {
+          "bin": 9,
+          "n": 36794,
+          "p_lo": 0.3032,
+          "p_hi": 0.5319,
+          "predicted": 0.3354,
+          "observed": 0.342,
+          "lift": 1.665
+        }
+      ],
+      "calibration_curve_short": [
+        {
+          "bin": 0,
+          "n": 36794,
+          "p_lo": 0.0052,
+          "p_hi": 0.0627,
+          "predicted": 0.0408,
+          "observed": 0.132,
+          "lift": 0.693
+        },
+        {
+          "bin": 1,
+          "n": 36793,
+          "p_lo": 0.0627,
+          "p_hi": 0.0824,
+          "predicted": 0.0735,
+          "observed": 0.1152,
+          "lift": 0.604
+        },
+        {
+          "bin": 2,
+          "n": 36793,
+          "p_lo": 0.0824,
+          "p_hi": 0.0976,
+          "predicted": 0.0901,
+          "observed": 0.1246,
+          "lift": 0.654
+        },
+        {
+          "bin": 3,
+          "n": 36794,
+          "p_lo": 0.0976,
+          "p_hi": 0.114,
+          "predicted": 0.1057,
+          "observed": 0.1351,
+          "lift": 0.709
+        },
+        {
+          "bin": 4,
+          "n": 36793,
+          "p_lo": 0.114,
+          "p_hi": 0.1331,
+          "predicted": 0.1231,
+          "observed": 0.1506,
+          "lift": 0.79
+        },
+        {
+          "bin": 5,
+          "n": 36793,
+          "p_lo": 0.1331,
+          "p_hi": 0.1573,
+          "predicted": 0.1448,
+          "observed": 0.1711,
+          "lift": 0.898
+        },
+        {
+          "bin": 6,
+          "n": 36794,
+          "p_lo": 0.1573,
+          "p_hi": 0.1876,
+          "predicted": 0.1718,
+          "observed": 0.1931,
+          "lift": 1.013
+        },
+        {
+          "bin": 7,
+          "n": 36793,
+          "p_lo": 0.1876,
+          "p_hi": 0.2255,
+          "predicted": 0.2059,
+          "observed": 0.2273,
+          "lift": 1.193
+        },
+        {
+          "bin": 8,
+          "n": 36793,
+          "p_lo": 0.2255,
+          "p_hi": 0.2744,
+          "predicted": 0.2489,
+          "observed": 0.2883,
+          "lift": 1.513
+        },
+        {
+          "bin": 9,
+          "n": 36794,
+          "p_lo": 0.2744,
+          "p_hi": 0.5765,
+          "predicted": 0.3186,
+          "observed": 0.3682,
+          "lift": 1.932
+        }
+      ],
+      "sweep_long": [
+        {
+          "quantile": 0.5,
+          "threshold": 0.1707,
+          "precision_pct": 27.23,
+          "n_signals": 183967,
+          "per_year": 9432.1,
+          "edge_vs_pstar_pp": -8.32,
+          "E_trade_pct": -0.749
+        },
+        {
+          "quantile": 0.7,
+          "threshold": 0.2548,
+          "precision_pct": 31.34,
+          "n_signals": 110380,
+          "per_year": 5659.2,
+          "edge_vs_pstar_pp": -4.21,
+          "E_trade_pct": -0.379
+        },
+        {
+          "quantile": 0.8,
+          "threshold": 0.2924,
+          "precision_pct": 33.0,
+          "n_signals": 73587,
+          "per_year": 3772.8,
+          "edge_vs_pstar_pp": -2.55,
+          "E_trade_pct": -0.23
+        },
+        {
+          "quantile": 0.9,
+          "threshold": 0.3298,
+          "precision_pct": 34.2,
+          "n_signals": 36794,
+          "per_year": 1886.4,
+          "edge_vs_pstar_pp": -1.35,
+          "E_trade_pct": -0.122
+        },
+        {
+          "quantile": 0.95,
+          "threshold": 0.3442,
+          "precision_pct": 34.56,
+          "n_signals": 23481,
+          "per_year": 1203.9,
+          "edge_vs_pstar_pp": -0.99,
+          "E_trade_pct": -0.089
+        },
+        {
+          "quantile": 0.97,
+          "threshold": 0.3442,
+          "precision_pct": 34.56,
+          "n_signals": 23481,
+          "per_year": 1203.9,
+          "edge_vs_pstar_pp": -0.99,
+          "E_trade_pct": -0.089
+        },
+        {
+          "quantile": 0.98,
+          "threshold": 0.3442,
+          "precision_pct": 34.56,
+          "n_signals": 23481,
+          "per_year": 1203.9,
+          "edge_vs_pstar_pp": -0.99,
+          "E_trade_pct": -0.089
+        },
+        {
+          "quantile": 0.99,
+          "threshold": 0.3442,
+          "precision_pct": 34.56,
+          "n_signals": 23481,
+          "per_year": 1203.9,
+          "edge_vs_pstar_pp": -0.99,
+          "E_trade_pct": -0.089
+        },
+        {
+          "quantile": 0.995,
+          "threshold": 0.3442,
+          "precision_pct": 34.56,
+          "n_signals": 23481,
+          "per_year": 1203.9,
+          "edge_vs_pstar_pp": -0.99,
+          "E_trade_pct": -0.089
+        }
+      ],
+      "sweep_short": [
+        {
+          "quantile": 0.5,
+          "threshold": 0.159,
+          "precision_pct": 24.96,
+          "n_signals": 183967,
+          "per_year": 9432.1,
+          "edge_vs_pstar_pp": -10.6,
+          "E_trade_pct": -0.954
+        },
+        {
+          "quantile": 0.7,
+          "threshold": 0.2045,
+          "precision_pct": 29.46,
+          "n_signals": 110380,
+          "per_year": 5659.2,
+          "edge_vs_pstar_pp": -6.09,
+          "E_trade_pct": -0.549
+        },
+        {
+          "quantile": 0.8,
+          "threshold": 0.2537,
+          "precision_pct": 32.83,
+          "n_signals": 73587,
+          "per_year": 3772.8,
+          "edge_vs_pstar_pp": -2.73,
+          "E_trade_pct": -0.246
+        },
+        {
+          "quantile": 0.9,
+          "threshold": 0.3178,
+          "precision_pct": 36.82,
+          "n_signals": 36794,
+          "per_year": 1886.4,
+          "edge_vs_pstar_pp": 1.27,
+          "E_trade_pct": 0.114
+        },
+        {
+          "quantile": 0.95,
+          "threshold": 0.3601,
+          "precision_pct": 39.22,
+          "n_signals": 21098,
+          "per_year": 1081.7,
+          "edge_vs_pstar_pp": 3.66,
+          "E_trade_pct": 0.33
+        },
+        {
+          "quantile": 0.97,
+          "threshold": 0.3802,
+          "precision_pct": 41.86,
+          "n_signals": 11038,
+          "per_year": 565.9,
+          "edge_vs_pstar_pp": 6.3,
+          "E_trade_pct": 0.567
+        },
+        {
+          "quantile": 0.98,
+          "threshold": 0.4178,
+          "precision_pct": 43.2,
+          "n_signals": 7359,
+          "per_year": 377.3,
+          "edge_vs_pstar_pp": 7.64,
+          "E_trade_pct": 0.688
+        },
+        {
+          "quantile": 0.99,
+          "threshold": 0.4275,
+          "precision_pct": 43.32,
+          "n_signals": 3680,
+          "per_year": 188.7,
+          "edge_vs_pstar_pp": 7.76,
+          "E_trade_pct": 0.698
+        },
+        {
+          "quantile": 0.995,
+          "threshold": 0.433,
+          "precision_pct": 43.75,
+          "n_signals": 1904,
+          "per_year": 97.6,
+          "edge_vs_pstar_pp": 8.19,
+          "E_trade_pct": 0.737
+        }
+      ],
+      "recommended_long": null,
+      "recommended_short": {
+        "quantile": 0.95,
+        "threshold": 0.3601,
+        "precision_pct": 39.22,
+        "n_signals": 21098,
+        "per_year": 1081.7,
+        "edge_vs_pstar_pp": 3.66,
+        "E_trade_pct": 0.33
+      },
+      "threshold_long": null,
+      "threshold_short": 0.3601,
+      "precision_by_year_long": {},
+      "mean_prob_sum": 1.0
+    }
+  }
+]
