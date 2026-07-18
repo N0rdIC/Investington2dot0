@@ -1,6 +1,6 @@
 {
   "model_type": "3class_calibrated",
-  "trained_at": "2026-07-18T09:40:29.818243+00:00",
+  "trained_at": "2026-07-18T23:32:25.938964+00:00",
   "features": [
     "rev_1",
     "rev_3",
@@ -171,8 +171,8 @@
     "neither_pct": 61.36,
     "long_win_pct": 20.13
   },
-  "threshold_long": null,
-  "threshold_short": 0.3601,
+  "threshold_long": 0.3554,
+  "threshold_short": 0.3609,
   "train_start": "2005-01-03",
   "train_end": "2026-06-30",
   "n_samples": 390271
