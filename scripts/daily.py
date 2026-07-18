@@ -51,6 +51,23 @@ def main():
     signals = pick_signals(scores, meta, n_side=N_SIDE)
     signal_date = scores["date"].iloc[0] if len(scores) else None
 
+    # attach indicative barrier levels to each signal, based on the last close.
+    # NOTE: these are INDICATIVE. The real entry is tomorrow's open, so actual
+    # target/stop will be set from that fill, not from this reference price.
+    for s in signals:
+        try:
+            ref = float(close[s["ticker"]].dropna().iloc[-1])
+        except (KeyError, IndexError):
+            continue
+        if s["side"] == "long":
+            s["ref_price"] = round(ref, 2)
+            s["target_price"] = round(ref * (1 + meta["up"]), 2)
+            s["stop_price"] = round(ref * (1 - meta["down"]), 2)
+        else:
+            s["ref_price"] = round(ref, 2)
+            s["target_price"] = round(ref * (1 - meta["up"]), 2)
+            s["stop_price"] = round(ref * (1 + meta["down"]), 2)
+
     state = load_state()
 
     # the trading day we process is the latest bar in `close`
@@ -94,6 +111,69 @@ def _latest_ohlc(universe, start, end):
     return out
 
 
+def _realized_glp(closed, meta, costs_rt=0.0014):
+    """Realised G / L / P from actual closed trades.
+
+    This is the loop closing back on the original framework:
+        E = P*G - (1-P)*L - c
+    The model ASSUMED G=+6%, L=-3%. What did we actually GET? Stops that gap
+    through fill worse than -3%, and profit exits fill slightly under +6%, so
+    realised G and L drift from target. Comparing realised P against the
+    breakeven P* implied by realised G/L is the honest scorecard.
+    """
+    if not closed:
+        return None
+
+    wins = [t["net_pct"] / 100 for t in closed if t["net_pct"] > 0]
+    losses = [t["net_pct"] / 100 for t in closed if t["net_pct"] <= 0]
+    n = len(closed)
+
+    P = len(wins) / n
+    G = sum(wins) / len(wins) if wins else 0.0
+    L = abs(sum(losses) / len(losses)) if losses else 0.0
+
+    # breakeven win rate implied by the REALISED payoff geometry
+    p_star_real = (L + costs_rt) / (G + L) if (G + L) > 0 else None
+    expectancy = P * G - (1 - P) * L
+
+    # split by exit reason - where the money actually comes from
+    by_reason = {}
+    for r in ("profit", "stop", "time"):
+        sub = [t for t in closed if t["reason"] == r]
+        if sub:
+            by_reason[r] = {
+                "n": len(sub),
+                "pct_of_trades": round(100 * len(sub) / n, 1),
+                "avg_net_pct": round(sum(t["net_pct"] for t in sub) / len(sub), 2),
+            }
+
+    # long vs short breakdown
+    by_side = {}
+    for s in ("long", "short"):
+        sub = [t for t in closed if t["side"] == s]
+        if sub:
+            w = [t for t in sub if t["net_pct"] > 0]
+            by_side[s] = {
+                "n": len(sub),
+                "win_rate_pct": round(100 * len(w) / len(sub), 1),
+                "avg_net_pct": round(sum(t["net_pct"] for t in sub) / len(sub), 2),
+            }
+
+    return {
+        "P_realized_pct": round(P * 100, 1),
+        "G_realized_pct": round(G * 100, 2),
+        "L_realized_pct": round(L * 100, 2),
+        "G_target_pct": round(meta["up"] * 100, 1),
+        "L_target_pct": round(meta["down"] * 100, 1),
+        "breakeven_P_pct": round(p_star_real * 100, 1) if p_star_real else None,
+        "expectancy_pct": round(expectancy * 100, 3),
+        "edge_vs_breakeven_pct": round((P - p_star_real) * 100, 1) if p_star_real else None,
+        "n_trades": n,
+        "by_reason": by_reason,
+        "by_side": by_side,
+    }
+
+
 def _export_dashboard(state, signals, signal_date, meta, scores):
     """Compact JSON the Vercel dashboard reads."""
     eq = state["equity_curve"]
@@ -112,6 +192,21 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
     sharpe = None
     if len(daily) > 5 and statistics.pstdev(daily) > 0:
         sharpe = (statistics.mean(daily) / statistics.pstdev(daily)) * (252 ** 0.5)
+
+    # enrich open positions with their barrier target / stop prices
+    open_enriched = []
+    for p in state["open_positions"]:
+        ep = p["entry_price"]
+        if p["side"] == "long":
+            tgt, stp = ep * (1 + p["up"]), ep * (1 - p["down"])
+        else:
+            tgt, stp = ep * (1 - p["up"]), ep * (1 + p["down"])
+        open_enriched.append({
+            **p,
+            "target_price": round(tgt, 2),
+            "stop_price": round(stp, 2),
+            "days_left": max(0, p["horizon"] - p["days_held"]),
+        })
 
     dash = {
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -134,14 +229,18 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
             "avg_loss_pct": round(statistics.mean([t["net_pct"] for t in closed if t["net_pct"] <= 0]), 2)
                             if any(t["net_pct"] <= 0 for t in closed) else None,
         },
+        "glp": _realized_glp(closed, meta),
         "todays_signals": signals,
-        "top_scores": [
-            {"ticker": t, "p_long": round(float(r["p_long"]), 3),
-             "p_short": round(float(r["p_short"]), 3)}
-            for t, r in scores.head(15).iterrows()
+        "top_longs": [
+            {"ticker": t, "p": round(float(r["p_long"]), 3)}
+            for t, r in scores.nlargest(10, "p_long").iterrows()
         ],
-        "open_positions": state["open_positions"],
-        "recent_trades": closed[-20:][::-1],
+        "top_shorts": [
+            {"ticker": t, "p": round(float(r["p_short"]), 3)}
+            for t, r in scores.nlargest(10, "p_short").iterrows()
+        ],
+        "open_positions": open_enriched,
+        "recent_trades": closed[-25:][::-1],
         "equity_curve": eq[-250:],
     }
     (PUBLIC / "dashboard.json").write_text(json.dumps(dash, indent=2))

@@ -66,6 +66,19 @@
   .foot { color: var(--dim); font-size: 10px; margin-top: 30px; border-top: 1px solid var(--line);
           padding-top: 12px; line-height: 1.7; }
   .pnum { font-variant-numeric: tabular-nums; }
+  .dim { color: var(--dim); }
+  .glpmain { padding: 16px 18px; }
+  .formula {
+    color: var(--accent); font-size: 12px; letter-spacing: 0.5px;
+    padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line);
+  }
+  .glprow { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+  .glprow .value { font-size: 20px; font-weight: 600; margin: 2px 0; }
+  .verdict {
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+    font-size: 12px;
+  }
+  @media (max-width: 820px) { .glprow { grid-template-columns: repeat(2,1fr); } }
 </style>
 </head>
 <body>
@@ -93,8 +106,19 @@
     </div>
   </div>
 
-  <div class="section-title">Model ranking · top 15 by P(long)</div>
-  <div id="scores"></div>
+  <div class="section-title">Realised edge · G / L / P from closed trades</div>
+  <div id="glp"></div>
+
+  <div class="cols">
+    <div>
+      <div class="section-title">Model ranking · top longs</div>
+      <div id="scoresLong"></div>
+    </div>
+    <div>
+      <div class="section-title">Model ranking · top shorts</div>
+      <div id="scoresShort"></div>
+    </div>
+  </div>
 
   <div class="section-title">Recent closed trades</div>
   <div id="trades"></div>
@@ -138,30 +162,44 @@ async function load() {
   drawChart(d.equity_curve || []);
 
   document.getElementById("signals").innerHTML = d.todays_signals?.length ? table(
-    ["Ticker","Side","P"],
+    ["Ticker","Side","Ref","Target","Stop","P"],
     d.todays_signals.map(s=>[
       s.ticker, `<span class="tag ${s.side}">${s.side}</span>`,
+      `<span class="pnum dim">${s.ref_price!==undefined?F(s.ref_price):"—"}</span>`,
+      `<span class="pnum pos">${s.target_price!==undefined?F(s.target_price):"—"}</span>`,
+      `<span class="pnum neg">${s.stop_price!==undefined?F(s.stop_price):"—"}</span>`,
       `<span class="pnum">${s.p.toFixed(3)}</span>`
-    ]), [0,0,1]
+    ]), [0,0,1,1,1,1]
   ) : `<div class="empty">No signals cleared P* today.</div>`;
 
   document.getElementById("open").innerHTML = d.open_positions?.length ? table(
-    ["Ticker","Side","Entry","Days","P"],
+    ["Ticker","Side","Entry","Target","Stop","Left"],
     d.open_positions.map(p=>[
       p.ticker, `<span class="tag ${p.side}">${p.side}</span>`,
-      `<span class="pnum">${F(p.entry_price)}</span>`, p.days_held,
-      `<span class="pnum">${p.p_at_entry.toFixed(3)}</span>`
-    ]), [0,0,1,1,1]
+      `<span class="pnum">${F(p.entry_price)}</span>`,
+      `<span class="pnum pos">${p.target_price!==undefined?F(p.target_price):"—"}</span>`,
+      `<span class="pnum neg">${p.stop_price!==undefined?F(p.stop_price):"—"}</span>`,
+      `<span class="pnum dim">${p.days_left!==undefined?p.days_left+"d":p.days_held}</span>`
+    ]), [0,0,1,1,1,1]
   ) : `<div class="empty">No open positions.</div>`;
 
-  document.getElementById("scores").innerHTML = table(
-    ["Ticker","P(long)","P(short)"],
-    (d.top_scores||[]).map(s=>[
+  document.getElementById("scoresLong").innerHTML = table(
+    ["Ticker","P(long)"],
+    (d.top_longs||[]).map(s=>[
       s.ticker,
-      `<span class="pnum ${s.p_long>d.p_star?'pos':''}">${s.p_long.toFixed(3)}</span>`,
-      `<span class="pnum ${s.p_short>d.p_star?'neg':''}">${s.p_short.toFixed(3)}</span>`
-    ]), [0,1,1]
+      `<span class="pnum ${s.p>d.p_star?'pos':''}">${s.p.toFixed(3)}</span>`
+    ]), [0,1]
   );
+
+  document.getElementById("scoresShort").innerHTML = table(
+    ["Ticker","P(short)"],
+    (d.top_shorts||[]).map(s=>[
+      s.ticker,
+      `<span class="pnum ${s.p>d.p_star?'neg':''}">${s.p.toFixed(3)}</span>`
+    ]), [0,1]
+  );
+
+  renderGLP(d);
 
   document.getElementById("trades").innerHTML = d.recent_trades?.length ? table(
     ["Ticker","Side","In","Out","Days","Exit","Net"],
@@ -177,6 +215,55 @@ async function load() {
     `Model trained ${d.model_trained_at?new Date(d.model_trained_at).toLocaleDateString():"—"} · `+
     `Virtual capital, realistic fills (entry at open+slip, stops slip through gaps, commission+spread+borrow). `+
     `Paper trading only — not investment advice.`;
+}
+
+function renderGLP(d) {
+  const g = d.glp;
+  const el = document.getElementById("glp");
+  if (!g) {
+    el.innerHTML = `<div class="empty">No closed trades yet — G / L / P appear once positions hit their barriers (up to ${d.barrier.horizon} days).</div>`;
+    return;
+  }
+  const edge = g.edge_vs_breakeven_pct;
+  const edgeCls = edge===null ? "" : (edge>0 ? "pos" : "neg");
+  const verdict = edge===null ? "—"
+    : (edge>0 ? `profitable: P beats breakeven by ${edge.toFixed(1)}pp`
+              : `losing: P is ${Math.abs(edge).toFixed(1)}pp below breakeven`);
+
+  // realised vs target comparison — slippage shows up here
+  const gSlip = (g.G_realized_pct - g.G_target_pct).toFixed(2);
+  const lSlip = (g.L_realized_pct - g.L_target_pct).toFixed(2);
+
+  el.innerHTML = `
+  <div class="glpwrap">
+    <div class="card glpmain">
+      <div class="formula">E = P·G − (1−P)·L − c</div>
+      <div class="glprow">
+        <div><div class="label">P realised</div><div class="value">${g.P_realized_pct}%</div>
+             <div class="label">breakeven ${g.breakeven_P_pct ?? "—"}%</div></div>
+        <div><div class="label">G realised</div><div class="value pos">+${g.G_realized_pct}%</div>
+             <div class="label">target +${g.G_target_pct}% (${gSlip>0?"+":""}${gSlip})</div></div>
+        <div><div class="label">L realised</div><div class="value neg">−${g.L_realized_pct}%</div>
+             <div class="label">target −${g.L_target_pct}% (${lSlip>0?"+":""}${lSlip})</div></div>
+        <div><div class="label">Expectancy / trade</div>
+             <div class="value ${g.expectancy_pct>=0?'pos':'neg'}">${pct(g.expectancy_pct)}</div>
+             <div class="label">over ${g.n_trades} trades</div></div>
+      </div>
+      <div class="verdict ${edgeCls}">${verdict}</div>
+    </div>
+  </div>
+  <div class="cols" style="margin-top:12px">
+    <div>${table(["Exit","N","% of trades","Avg net"],
+      Object.entries(g.by_reason||{}).map(([k,v])=>[
+        `<span class="tag ${k}">${k}</span>`, v.n, v.pct_of_trades+"%",
+        `<span class="pnum ${cls(v.avg_net_pct)}">${pct(v.avg_net_pct)}</span>`]),
+      [0,1,1,1])}</div>
+    <div>${table(["Side","N","Win rate","Avg net"],
+      Object.entries(g.by_side||{}).map(([k,v])=>[
+        `<span class="tag ${k}">${k}</span>`, v.n, v.win_rate_pct+"%",
+        `<span class="pnum ${cls(v.avg_net_pct)}">${pct(v.avg_net_pct)}</span>`]),
+      [0,1,1,1])}</div>
+  </div>`;
 }
 
 function table(headers, rows, align) {
