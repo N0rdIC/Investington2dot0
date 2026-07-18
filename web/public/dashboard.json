@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-17T22:40:24.519620+00:00",
+  "updated_at": "2026-07-18T07:57:54.124166+00:00",
   "model_trained_at": "2026-07-17T22:36:34.412751+00:00",
   "signal_date": "2026-06-30",
   "p_star": 0.35555555555555557,
@@ -22,123 +22,155 @@
     "avg_win_pct": null,
     "avg_loss_pct": null
   },
+  "glp": null,
   "todays_signals": [
     {
       "ticker": "MU",
       "side": "long",
-      "p": 0.6884933710098267
+      "p": 0.6884933710098267,
+      "ref_price": 1154.11,
+      "target_price": 1223.36,
+      "stop_price": 1119.49
     },
     {
       "ticker": "BE",
       "side": "long",
-      "p": 0.6755419373512268
+      "p": 0.6755419373512268,
+      "ref_price": 302.7,
+      "target_price": 320.86,
+      "stop_price": 293.62
     },
     {
       "ticker": "AMD",
       "side": "long",
-      "p": 0.6728946566581726
+      "p": 0.6728946566581726,
+      "ref_price": 580.91,
+      "target_price": 615.76,
+      "stop_price": 563.48
     },
     {
       "ticker": "LUNR",
       "side": "long",
-      "p": 0.6614488959312439
+      "p": 0.6614488959312439,
+      "ref_price": 21.39,
+      "target_price": 22.67,
+      "stop_price": 20.75
     },
     {
       "ticker": "AMC",
       "side": "short",
-      "p": 0.678952693939209
+      "p": 0.678952693939209,
+      "ref_price": 1.9,
+      "target_price": 1.79,
+      "stop_price": 1.96
     },
     {
       "ticker": "LCID",
       "side": "short",
-      "p": 0.6765133142471313
+      "p": 0.6765133142471313,
+      "ref_price": 6.69,
+      "target_price": 6.29,
+      "stop_price": 6.89
     },
     {
       "ticker": "QBTS",
       "side": "short",
-      "p": 0.6762921810150146
+      "p": 0.6762921810150146,
+      "ref_price": 23.99,
+      "target_price": 22.55,
+      "stop_price": 24.71
     },
     {
       "ticker": "RGTI",
       "side": "short",
-      "p": 0.6726445555686951
+      "p": 0.6726445555686951,
+      "ref_price": 19.32,
+      "target_price": 18.16,
+      "stop_price": 19.9
     }
   ],
-  "top_scores": [
+  "top_longs": [
     {
       "ticker": "MU",
-      "p_long": 0.688,
-      "p_short": 0.652
+      "p": 0.688
     },
     {
       "ticker": "BE",
-      "p_long": 0.676,
-      "p_short": 0.622
+      "p": 0.676
     },
     {
       "ticker": "AMD",
-      "p_long": 0.673,
-      "p_short": 0.53
+      "p": 0.673
     },
     {
       "ticker": "LUNR",
-      "p_long": 0.661,
-      "p_short": 0.707
+      "p": 0.661
     },
     {
       "ticker": "STX",
-      "p_long": 0.654,
-      "p_short": 0.526
+      "p": 0.66
     },
     {
       "ticker": "WDC",
-      "p_long": 0.652,
-      "p_short": 0.607
+      "p": 0.655
     },
     {
       "ticker": "MRVL",
-      "p_long": 0.647,
-      "p_short": 0.638
+      "p": 0.647
     },
     {
       "ticker": "MRNA",
-      "p_long": 0.645,
-      "p_short": 0.543
+      "p": 0.645
     },
     {
       "ticker": "CIFR",
-      "p_long": 0.643,
-      "p_short": 0.608
+      "p": 0.643
     },
     {
       "ticker": "ENPH",
-      "p_long": 0.64,
-      "p_short": 0.662
+      "p": 0.64
+    }
+  ],
+  "top_shorts": [
+    {
+      "ticker": "LUNR",
+      "p": 0.707
     },
     {
-      "ticker": "RIOT",
-      "p_long": 0.638,
-      "p_short": 0.569
-    },
-    {
-      "ticker": "RKLB",
-      "p_long": 0.636,
-      "p_short": 0.663
+      "ticker": "AMC",
+      "p": 0.679
     },
     {
       "ticker": "LCID",
-      "p_long": 0.633,
-      "p_short": 0.677
+      "p": 0.677
     },
     {
       "ticker": "QBTS",
-      "p_long": 0.626,
-      "p_short": 0.676
+      "p": 0.676
     },
     {
-      "ticker": "RUN",
-      "p_long": 0.626,
-      "p_short": 0.65
+      "ticker": "RGTI",
+      "p": 0.673
+    },
+    {
+      "ticker": "ASTS",
+      "p": 0.67
+    },
+    {
+      "ticker": "IONQ",
+      "p": 0.668
+    },
+    {
+      "ticker": "RKLB",
+      "p": 0.663
+    },
+    {
+      "ticker": "ENPH",
+      "p": 0.662
+    },
+    {
+      "ticker": "CHPT",
+      "p": 0.657
     }
   ],
   "open_positions": [
@@ -151,7 +183,10 @@
       "down": 0.03,
       "horizon": 5,
       "p_at_entry": 0.6884933710098267,
-      "days_held": 0
+      "days_held": 0,
+      "target_price": 1214.02,
+      "stop_price": 1110.94,
+      "days_left": 5
     },
     {
       "ticker": "BE",
@@ -162,7 +197,10 @@
       "down": 0.03,
       "horizon": 5,
       "p_at_entry": 0.6755419373512268,
-      "days_held": 0
+      "days_held": 0,
+      "target_price": 296.63,
+      "stop_price": 271.44,
+      "days_left": 5
     },
     {
       "ticker": "AMD",
@@ -173,7 +211,10 @@
       "down": 0.03,
       "horizon": 5,
       "p_at_entry": 0.6728946566581726,
-      "days_held": 0
+      "days_held": 0,
+      "target_price": 578.59,
+      "stop_price": 529.47,
+      "days_left": 5
     },
     {
       "ticker": "LUNR",
@@ -184,7 +225,10 @@
       "down": 0.03,
       "horizon": 5,
       "p_at_entry": 0.6614488959312439,
-      "days_held": 0
+      "days_held": 0,
+      "target_price": 22.12,
+      "stop_price": 20.24,
+      "days_left": 5
     },
     {
       "ticker": "AMC",
@@ -195,7 +239,10 @@
       "down": 0.03,
       "horizon": 5,
       "p_at_entry": 0.678952693939209,
-      "days_held": 0
+      "days_held": 0,
+      "target_price": 1.9,
+      "stop_price": 2.08,
+      "days_left": 5
     },
     {
       "ticker": "LCID",
@@ -206,7 +253,10 @@
       "down": 0.03,
       "horizon": 5,
       "p_at_entry": 0.6765133142471313,
-      "days_held": 0
+      "days_held": 0,
+      "target_price": 6.06,
+      "stop_price": 6.64,
+      "days_left": 5
     },
     {
       "ticker": "QBTS",
@@ -217,7 +267,10 @@
       "down": 0.03,
       "horizon": 5,
       "p_at_entry": 0.6762921810150146,
-      "days_held": 0
+      "days_held": 0,
+      "target_price": 21.94,
+      "stop_price": 24.04,
+      "days_left": 5
     },
     {
       "ticker": "RGTI",
@@ -228,7 +281,10 @@
       "down": 0.03,
       "horizon": 5,
       "p_at_entry": 0.6726445555686951,
-      "days_held": 0
+      "days_held": 0,
+      "target_price": 17.87,
+      "stop_price": 19.59,
+      "days_left": 5
     }
   ],
   "recent_trades": [],
