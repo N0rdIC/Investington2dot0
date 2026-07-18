@@ -1,5 +1,6 @@
 {
-  "trained_at": "2026-07-18T08:55:50.719425+00:00",
+  "model_type": "3class",
+  "trained_at": "2026-07-18T09:02:38.181502+00:00",
   "features": [
     "rev_1",
     "rev_3",
@@ -85,7 +86,6 @@
     "DASH",
     "DDOG",
     "DE",
-    "DKNG",
     "DVN",
     "ENPH",
     "F",
@@ -166,7 +166,11 @@
   "p_star": 0.35555555555555557,
   "train_start": "2005-01-03",
   "train_end": "2026-06-30",
-  "n_samples": 390273,
-  "base_rate_long": 0.2012514316901246,
-  "base_rate_short": 0.1851729430424344
+  "n_samples": 388589,
+  "class_distribution": {
+    "n": 388589,
+    "short_win_pct": 18.49,
+    "neither_pct": 61.42,
+    "long_win_pct": 20.09
+  }
 }
