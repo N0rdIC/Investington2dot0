@@ -34,7 +34,7 @@ N_SIDE = 5
 
 def main():
     cfg = Config()
-    models, meta = load_models()
+    model, meta = load_models()
     universe = meta["universe"]
 
     # only need ~2 years of history to build all features for the latest bar
@@ -47,7 +47,7 @@ def main():
     close = close.loc[:, close.notna().sum() > 200]
     volume = volume.reindex(columns=close.columns)
 
-    scores = latest_scores(close, volume, fx["close"], sx["close"], models, meta)
+    scores = latest_scores(close, volume, fx["close"], sx["close"], model, meta)
     signals = pick_signals(scores, meta, n_side=N_SIDE)
     signal_date = scores["date"].iloc[0] if len(scores) else None
 
@@ -232,13 +232,20 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
         "glp": _realized_glp(closed, meta),
         "todays_signals": signals,
         "top_longs": [
-            {"ticker": t, "p": round(float(r["p_long"]), 3)}
+            {"ticker": t, "p": round(float(r["p_long"]), 3),
+             "p_opp": round(float(r["p_short"]), 3),
+             "p_neither": round(float(r["p_neither"]), 3),
+             "tilt": round(float(r["tilt"]), 3)}
             for t, r in scores.nlargest(10, "p_long").iterrows()
         ],
         "top_shorts": [
-            {"ticker": t, "p": round(float(r["p_short"]), 3)}
+            {"ticker": t, "p": round(float(r["p_short"]), 3),
+             "p_opp": round(float(r["p_long"]), 3),
+             "p_neither": round(float(r["p_neither"]), 3),
+             "tilt": round(float(-r["tilt"]), 3)}
             for t, r in scores.nlargest(10, "p_short").iterrows()
         ],
+        "model_type": meta.get("model_type", "2model"),
         "open_positions": open_enriched,
         "recent_trades": closed[-25:][::-1],
         "equity_curve": eq[-250:],

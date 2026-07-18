@@ -37,7 +37,8 @@ jobs:
         run: |
           git config user.name  "signal-bot"
           git config user.email "signal-bot@users.noreply.github.com"
-          git add model/model_long.json model/model_short.json model/meta.json
+          git add model/model3.json model/meta.json
+          git rm --cached model/model_long.json model/model_short.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No model changes."
           else

@@ -1,19 +1,23 @@
-"""Train and freeze the barrier models. Run manually (workflow_dispatch).
+"""Train and freeze the 3-class barrier model. Run manually (workflow_dispatch).
 
-Unlike the backtest -- which trains 6 walk-forward models to measure honest
-out-of-sample skill -- this fits ONE model per side on ALL available history,
-because for live trading you want the model to use every scrap of data before
-predicting tomorrow. The walk-forward backtest already told us the signal is
-real out-of-sample; this step is about deployment, not validation.
+ONE multiclass model replaces the two independent binary ones. The softmax
+normalises across {short_win, neither, long_win}, so
+
+    p_short + p_neither + p_long = 1
+
+is guaranteed. With two separate binary models, ~40% of predictions had
+p_long + p_short > 1 -- mathematically impossible, since the two outcomes are
+mutually exclusive (hitting +6% before -3% means the path crossed +3% on the
+way up, which is the short's stop). That inconsistency is now inexpressible
+rather than filtered out after the fact.
+
+Unlike the backtest -- which trains walk-forward models to measure honest
+out-of-sample skill -- this fits ONE model on ALL available history, because
+for live trading you want every scrap of data before predicting tomorrow.
 
 Outputs (committed by the workflow):
-    ../model/model_long.json
-    ../model/model_short.json
+    ../model/model3.json
     ../model/meta.json
-
-The daily job then loads these frozen files. Retraining is manual so you control
-exactly when the model changes -- no silent drift between what you validated and
-what trades.
 """
 from __future__ import annotations
 
@@ -28,33 +32,15 @@ import xgboost as xgb
 from qcs.config import Config
 from qcs.data import load_yahoo
 from qcs.features import build_features, cross_sectional_zscore
-from qcs.labels import triple_barrier_labels
+from qcs.labels3 import (joint_barrier_labels, class_distribution,
+                         verify_exhaustive)
 
 MODEL_DIR = Path(__file__).resolve().parent.parent / "model"
 MODEL_DIR.mkdir(exist_ok=True)
 
 UP, DOWN = 0.06, 0.03
-
-
-def _fit(X, y, cfg, vol_cap_cols):
-    y = y.astype(int)
-    spw = float((y == 0).sum()) / max(1, (y == 1).sum())
-    fw = np.ones(X.shape[1])
-    for i, c in enumerate(X.columns):
-        if c in vol_cap_cols:
-            fw[i] = cfg.model_vol_cap_weight
-    m = cfg.model
-    model = xgb.XGBClassifier(
-        n_estimators=m.n_estimators, max_depth=m.max_depth,
-        learning_rate=m.learning_rate, subsample=m.subsample,
-        colsample_bytree=m.colsample_bytree, min_child_weight=m.min_child_weight,
-        reg_lambda=m.reg_lambda, random_state=m.random_state,
-        objective="binary:logistic", eval_metric="logloss",
-        scale_pos_weight=spw, feature_weights=fw, n_jobs=4, verbosity=0,
-    )
-    w = np.full(len(y), 1.0 / cfg.label.horizon)
-    model.fit(X.to_numpy(), y.to_numpy(), sample_weight=w)
-    return model
+VOL_CAP_COLS = {"rvol_252", "rvol_60", "rvol_ratio", "rvol_ratio_long",
+                "vol_of_vol", "mkt_stress", "mkt_stress_z"}
 
 
 def main():
@@ -68,35 +54,60 @@ def main():
     ok = close.notna().sum() > 400
     close, volume = close.loc[:, ok], volume.loc[:, ok]
     factor_close, stress_close = fx["close"], sx["close"]
+    print(f"  {close.shape[1]} names x {close.shape[0]} days")
+
+    # sanity: the three classes must be mutually exclusive or nothing works
+    v = verify_exhaustive(close, UP, DOWN, cfg.label.horizon)
+    print(f"  exclusivity check: overlap={v['overlap']} exclusive={v['exclusive']}")
+    if not v["exclusive"]:
+        raise RuntimeError("class definition broken: long/short outcomes overlap")
 
     print("Building features...")
     X = cross_sectional_zscore(
         build_features(close, volume, factor_close, stress_close=stress_close))
+    y = joint_barrier_labels(close, UP, DOWN, cfg.label.horizon)
 
-    y_long = triple_barrier_labels(close, UP, DOWN, cfg.label.horizon, "long")
-    y_short = triple_barrier_labels(close, UP, DOWN, cfg.label.horizon, "short")
+    idx = X.index.intersection(y.index)
+    X, y = X.loc[idx].sort_index(), y.loc[idx].sort_index()
+    mask = y.notna() & (X.notna().sum(axis=1) >= 0.5 * X.shape[1])
+    Xf, yf = X[mask], y[mask].astype(int)
 
-    idx = X.index.intersection(y_long.index)
-    X = X.loc[idx].sort_index()
-    yl = y_long.loc[idx].sort_index()
-    ys = y_short.loc[idx].sort_index()
+    dist = class_distribution(yf)
+    print(f"  classes: {dist}")
 
-    # drop rows without a label or with too few features
-    mask = yl.notna() & (X.notna().sum(axis=1) >= 0.5 * X.shape[1])
-    Xf, ylf, ysf = X[mask], yl[mask], ys[mask]
+    # SAMPLE WEIGHTS: only the label-overlap correction, NOT class balancing.
+    #
+    # Why no class weights: the three classes are already nearly balanced
+    # (~29 / 37 / 34), so inverse-frequency weighting corrects nothing -- but it
+    # DOES distort calibration, because it makes the model predict under a
+    # uniform 1/3 prior instead of the true base rates. That matters here in a
+    # way it doesn't for pure ranking: we compare p_long against an ABSOLUTE
+    # threshold P* = (L+c)/(G+L). Decalibrated probabilities make that
+    # comparison meaningless. So we keep the probabilities honest and only
+    # down-weight for the fact that consecutive 5-day labels overlap.
+    sw = np.full(len(yf), 1.0 / cfg.label.horizon)
 
-    vol_cap = {"rvol_252", "rvol_60", "rvol_ratio", "rvol_ratio_long",
-               "vol_of_vol", "mkt_stress", "mkt_stress_z"}
+    fw = np.ones(Xf.shape[1])
+    for i, c in enumerate(Xf.columns):
+        if c in VOL_CAP_COLS:
+            fw[i] = cfg.model_vol_cap_weight
 
-    print(f"Training on {len(Xf)} samples, {Xf.shape[1]} features...")
-    ml = _fit(Xf, ylf, cfg, vol_cap)
-    ms = _fit(Xf, ysf, cfg, vol_cap)
-
-    ml.save_model(str(MODEL_DIR / "model_long.json"))
-    ms.save_model(str(MODEL_DIR / "model_short.json"))
+    m = cfg.model
+    print(f"Training 3-class model on {len(Xf)} samples, {Xf.shape[1]} features...")
+    model = xgb.XGBClassifier(
+        n_estimators=m.n_estimators, max_depth=m.max_depth,
+        learning_rate=m.learning_rate, subsample=m.subsample,
+        colsample_bytree=m.colsample_bytree, min_child_weight=m.min_child_weight,
+        reg_lambda=m.reg_lambda, random_state=m.random_state,
+        objective="multi:softprob", num_class=3, eval_metric="mlogloss",
+        feature_weights=fw, n_jobs=4, verbosity=0,
+    )
+    model.fit(Xf.to_numpy(), yf.to_numpy(), sample_weight=sw)
+    model.save_model(str(MODEL_DIR / "model3.json"))
 
     p_star = (DOWN + cfg.costs.round_trip) / (UP + DOWN)
     meta = {
+        "model_type": "3class",
         "trained_at": datetime.now(timezone.utc).isoformat(),
         "features": list(Xf.columns),
         "universe": list(close.columns),
@@ -105,12 +116,18 @@ def main():
         "train_start": str(close.index[0].date()),
         "train_end": str(close.index[-1].date()),
         "n_samples": int(len(Xf)),
-        "base_rate_long": float(ylf.mean()),
-        "base_rate_short": float(ysf.mean()),
+        "class_distribution": dist,
     }
     (MODEL_DIR / "meta.json").write_text(json.dumps(meta, indent=2))
-    print(f"Saved models. p_star={p_star:.3f}, "
-          f"base rate long={meta['base_rate_long']:.3f}")
+
+    # remove stale two-model artifacts so daily.py can't silently load them
+    for old in ("model_long.json", "model_short.json"):
+        p = MODEL_DIR / old
+        if p.exists():
+            p.unlink()
+            print(f"  removed stale {old}")
+
+    print(f"Saved model3.json. p_star={p_star:.3f}")
 
 
 if __name__ == "__main__":
