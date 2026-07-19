@@ -1,6 +1,6 @@
 {
-  "model_type": "3class_calibrated",
-  "trained_at": "2026-07-18T23:32:25.938964+00:00",
+  "model_type": "per_side_outcome",
+  "trained_at": "2026-07-19T07:33:04.720006+00:00",
   "features": [
     "rev_1",
     "rev_3",
@@ -163,16 +163,27 @@
   ],
   "up": 0.06,
   "down": 0.03,
-  "horizon": 5,
-  "p_star": 0.35555555555555557,
-  "class_distribution": {
-    "n": 390271,
-    "short_win_pct": 18.52,
-    "neither_pct": 61.36,
-    "long_win_pct": 20.13
+  "horizon": 10,
+  "min_expectancy": 0.005,
+  "min_E_long": 0.005,
+  "min_E_short": 0.005,
+  "r_timeout_long": 0.01466,
+  "r_timeout_short": 0.01159,
+  "cost": 0.002,
+  "outcome_distribution": {
+    "long": {
+      "n": 390271,
+      "stop_pct": 49.17,
+      "timeout_pct": 20.69,
+      "win_pct": 30.14
+    },
+    "short": {
+      "n": 390271,
+      "stop_pct": 53.57,
+      "timeout_pct": 19.5,
+      "win_pct": 26.93
+    }
   },
-  "threshold_long": 0.3554,
-  "threshold_short": 0.3609,
   "train_start": "2005-01-03",
   "train_end": "2026-06-30",
   "n_samples": 390271
