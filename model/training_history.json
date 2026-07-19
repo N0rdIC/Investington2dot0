@@ -1608,5 +1608,134 @@
         "n_years": 19.5
       }
     }
+  },
+  {
+    "trained_at": "2026-07-19T22:08:36.807989+00:00",
+    "train_end": "2026-06-30",
+    "n_samples": 390271,
+    "n_names": 110,
+    "n_features": 46,
+    "horizon": 10,
+    "metrics": {
+      "long": {
+        "side": "long",
+        "auc_win": 0.5683,
+        "auc_stop": 0.5664,
+        "base": {
+          "win_pct": 38.97,
+          "stop_pct": 35.39,
+          "timeout_pct": 25.64
+        },
+        "naive_pstar_pct": 52.0,
+        "true_breakeven_pct": 39.39,
+        "r_timeout_pct": 0.181,
+        "calibration_win": {
+          "brier": 0.23781,
+          "ece": 0.03989,
+          "bias": 0.02985,
+          "base_rate": 0.38972,
+          "mean_pred": 0.3599
+        },
+        "sweep": [
+          {
+            "min_E_pct": 0.0,
+            "n_signals": 176252,
+            "per_year": 9036.5,
+            "win_rate_pct": 40.15,
+            "stop_rate_pct": 36.36,
+            "E_predicted_pct": 0.219,
+            "E_realised_pct": 0.016
+          },
+          {
+            "min_E_pct": 0.25,
+            "n_signals": 67839,
+            "per_year": 3478.1,
+            "win_rate_pct": 42.7,
+            "stop_rate_pct": 39.56,
+            "E_predicted_pct": 0.418,
+            "E_realised_pct": -0.027
+          },
+          {
+            "min_E_pct": 0.5,
+            "n_signals": 20245,
+            "per_year": 1038.0,
+            "win_rate_pct": 44.45,
+            "stop_rate_pct": 42.5,
+            "E_predicted_pct": 0.57,
+            "E_realised_pct": -0.117
+          },
+          {
+            "min_E_pct": 0.75,
+            "n_signals": 97,
+            "per_year": 5.0,
+            "win_rate_pct": 47.42,
+            "stop_rate_pct": 42.27,
+            "E_predicted_pct": 0.757,
+            "E_realised_pct": 0.057
+          }
+        ],
+        "recommended": null,
+        "min_E": null,
+        "floor_pct": 0.5,
+        "gate_monotone": true,
+        "n_eval": 367934,
+        "n_years": 19.5
+      },
+      "short": {
+        "side": "short",
+        "auc_win": 0.5663,
+        "auc_stop": 0.5682,
+        "base": {
+          "win_pct": 35.39,
+          "stop_pct": 38.97,
+          "timeout_pct": 25.64
+        },
+        "naive_pstar_pct": 52.0,
+        "true_breakeven_pct": 42.97,
+        "r_timeout_pct": -0.181,
+        "calibration_win": {
+          "brier": 0.22925,
+          "ece": 0.04002,
+          "bias": 0.03904,
+          "base_rate": 0.35391,
+          "mean_pred": 0.31486
+        },
+        "sweep": [
+          {
+            "min_E_pct": 0.0,
+            "n_signals": 18837,
+            "per_year": 965.8,
+            "win_rate_pct": 39.34,
+            "stop_rate_pct": 39.85,
+            "E_predicted_pct": 0.156,
+            "E_realised_pct": -0.258
+          },
+          {
+            "min_E_pct": 0.25,
+            "n_signals": 4020,
+            "per_year": 206.1,
+            "win_rate_pct": 36.02,
+            "stop_rate_pct": 40.32,
+            "E_predicted_pct": 0.351,
+            "E_realised_pct": -0.462
+          },
+          {
+            "min_E_pct": 0.5,
+            "n_signals": 267,
+            "per_year": 13.7,
+            "win_rate_pct": 35.21,
+            "stop_rate_pct": 34.08,
+            "E_predicted_pct": 0.519,
+            "E_realised_pct": -0.184
+          }
+        ],
+        "recommended": null,
+        "min_E": null,
+        "floor_pct": 0.5,
+        "gate_monotone": true,
+        "n_eval": 367934,
+        "n_years": 19.5
+      }
+    }
   }
 ]

@@ -1,6 +1,6 @@
 {
   "model_type": "per_side_outcome",
-  "trained_at": "2026-07-19T18:27:46.656646+00:00",
+  "trained_at": "2026-07-19T22:08:36.807989+00:00",
   "features": [
     "rev_1",
     "rev_3",
@@ -166,7 +166,7 @@
   "horizon": 10,
   "min_expectancy": 0.005,
   "min_sigma_daily": 0.018,
-  "min_E_long": 0.0,
+  "min_E_long": null,
   "min_E_short": null,
   "r_timeout_long": 0.00181,
   "r_timeout_short": -0.00181,
