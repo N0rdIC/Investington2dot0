@@ -40,7 +40,7 @@
   .tag.timeout{background:rgba(107,120,133,.15);color:var(--dim)}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
   @media(max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
-  #eq{width:100%;height:300px;display:block}
+  #eq{width:100%;height:440px;display:block;cursor:crosshair}
   .pnum{font-variant-numeric:tabular-nums}
   .empty{color:var(--dim);padding:24px;text-align:center}
   .note{color:var(--dim);font-size:10px;margin-top:8px;line-height:1.6}
@@ -68,11 +68,23 @@
   <div class="grid" id="kpi"></div>
 
   <div class="st">Equity curve · simulated on walk-forward predictions</div>
-  <div class="card"><canvas id="eq"></canvas>
+  <div class="card">
+    <div class="filter" style="justify-content:space-between">
+      <div class="filter">
+        <button class="fbtn" id="zoomOut">− zoom out</button>
+        <button class="fbtn" id="zoomReset">reset</button>
+        <span class="note" style="margin:0;padding-top:4px">drag to select a range · scroll to zoom</span>
+      </div>
+      <span class="note" id="zrange" style="margin:0;padding-top:4px"></span>
+    </div>
+    <canvas id="eq"></canvas>
     <div class="note">Every prediction driving this curve was made by a model that had
       not seen the period it is trading. Fills are at the barrier price (optimistic);
       the live paper desk applies gap slippage, so expect it to run below this.</div>
   </div>
+
+  <div class="st">Trade counters</div>
+  <div id="counters"></div>
 
   <div class="cols">
     <div><div class="st">By exit reason</div><div id="reason"></div></div>
@@ -97,7 +109,7 @@
   <div class="foot" id="foot"></div>
 
 <script>
-let DATA=null, FILTER="all";
+let DATA=null, FILTER="all", Z0=0, Z1=1, DRAG=null;
 const F=(n,d=2)=>n==null?"—":Number(n).toFixed(d);
 const pct=n=>n==null?"—":(n>=0?"+":"")+Number(n).toFixed(2)+"%";
 const cls=n=>n>=0?"pos":"neg";
@@ -125,7 +137,18 @@ async function load(){
       <div class="value ${k[2]}">${k[1]}</div>
       <div class="label" style="margin-top:2px">${k[3]}</div></div>`).join("");
 
+  Z0=0; Z1=1;
   drawEq(bt.equity_curve||[], s.start_capital);
+
+  document.getElementById("counters").innerHTML = tbl(
+    ["Metric","Value","Metric","Value"],
+    [["Total trades",`<b>${s.n_trades}</b>`,"Position size",`$${Number(s.position_size||0).toLocaleString()}`],
+     ["Wins",`<span class="pos">${s.n_wins}</span>`,"Gross profit",`<span class="pos">$${Number(s.gross_profit||0).toLocaleString()}</span>`],
+     ["Losses",`<span class="neg">${s.n_losses}</span>`,"Gross loss",`<span class="neg">$${Number(s.gross_loss||0).toLocaleString()}</span>`],
+     ["Win / loss ratio",F(s.n_wins/Math.max(1,s.n_losses)),"Net P&L",`<span class="${cls(s.net_pnl)}">$${Number(s.net_pnl||0).toLocaleString()}</span>`],
+     ["Best trade",`<span class="pos">${pct(s.best_trade_pct)}</span>`,"Avg days held",F(s.avg_days_held,1)],
+     ["Worst trade",`<span class="neg">${pct(s.worst_trade_pct)}</span>`,"Max concurrent",s.max_positions??"—"]],
+    [0,1,0,1]);
 
   document.getElementById("reason").innerHTML = tbl(
     ["Reason","N","% of trades","Avg net"],
@@ -174,16 +197,17 @@ function renderTrades(){
   const t=(DATA.bt.trades||[]).slice().reverse()
     .filter(x=>FILTER==="all"||x.reason===FILTER);
   document.getElementById("trades").innerHTML = t.length? tbl(
-    ["Ticker","Side","In","Out","Days","Exit","Entry","Exit px","Net","P&L","E@entry"],
-    t.slice(0,150).map(x=>[
+    ["Ticker","Side","In","Out","Days","Exit","Size","Shares","Entry","Exit px","Net","P&L"],
+    t.slice(0,200).map(x=>[
       x.ticker,`<span class="tag ${x.side}">${x.side}</span>`,x.entry_date,x.exit_date,
       `<span class="pnum dim">${x.days}</span>`,`<span class="tag ${x.reason}">${x.reason}</span>`,
+      `<span class="pnum dim">$${F(x.size,0)}</span>`,
+      `<span class="pnum dim">${F(x.shares,1)}</span>`,
       `<span class="pnum dim">${F(x.entry_price)}</span>`,
       `<span class="pnum dim">${F(x.exit_price)}</span>`,
       `<span class="pnum ${cls(x.net_pct)}">${pct(x.net_pct)}</span>`,
-      `<span class="pnum ${cls(x.pnl)}">$${F(x.pnl,0)}</span>`,
-      `<span class="pnum dim">${F(x.E_at_entry_pct)}%</span>`
-    ]),[0,0,0,0,1,0,1,1,1,1,1]) : `<div class="empty">no trades match</div>`;
+      `<span class="pnum ${cls(x.pnl)}">$${F(x.pnl,0)}</span>`
+    ]),[0,0,0,0,1,0,1,1,1,1,1,1]) : `<div class="empty">no trades match</div>`;
 }
 
 function tbl(h,rows,al){
@@ -193,32 +217,80 @@ function tbl(h,rows,al){
 
 function drawEq(curve,start){
   const cv=document.getElementById("eq"),dpr=devicePixelRatio||1;
-  const W=cv.clientWidth,H=300;cv.width=W*dpr;cv.height=H*dpr;
+  const W=cv.clientWidth,H=440;cv.width=W*dpr;cv.height=H*dpr;
   const x=cv.getContext("2d");x.scale(dpr,dpr);x.clearRect(0,0,W,H);
   if(curve.length<2){x.fillStyle="#6b7885";x.font="12px monospace";x.fillText("no curve",12,H/2);return;}
-  const v=curve.map(p=>p.equity),mn=Math.min(...v),mx=Math.max(...v);
+
+  const i0=Math.max(0,Math.floor(Z0*(curve.length-1)));
+  const i1=Math.min(curve.length-1,Math.ceil(Z1*(curve.length-1)));
+  const view=curve.slice(i0,i1+1);
+  if(view.length<2){return;}
+  document.getElementById("zrange").textContent =
+    `${view[0].date} → ${view[view.length-1].date}  (${view.length} days)`;
+
+  const v=view.map(p=>p.equity),mn=Math.min(...v),mx=Math.max(...v);
   const pad=(mx-mn)*.08||1,lo=Math.max(0,mn-pad),hi=mx+pad;
-  const X=i=>52+(W-66)*i/(curve.length-1),Y=q=>16+(H-46)*(1-(q-lo)/(hi-lo));
+  const X=i=>58+(W-72)*i/(view.length-1),Y=q=>16+(H-52)*(1-(q-lo)/(hi-lo));
+  cv._map={i0,i1,X0:58,X1:W-14};
+
   x.strokeStyle="#1a222b";x.fillStyle="#6b7885";x.font="10px monospace";
-  for(let g=0;g<=4;g++){const q=lo+(hi-lo)*g/4,y=Y(q);
-    x.beginPath();x.moveTo(52,y);x.lineTo(W-14,y);x.stroke();
+  for(let g=0;g<=5;g++){const q=lo+(hi-lo)*g/5,y=Y(q);
+    x.beginPath();x.moveTo(58,y);x.lineTo(W-14,y);x.stroke();
     x.fillText("$"+(q/1000).toFixed(0)+"k",2,y+3);}
-  x.strokeStyle="#3a3020";x.setLineDash([3,3]);x.beginPath();
-  x.moveTo(52,Y(start));x.lineTo(W-14,Y(start));x.stroke();x.setLineDash([]);
-  const up=v[v.length-1]>=start;
+  if(start>=lo&&start<=hi){
+    x.strokeStyle="#3a3020";x.setLineDash([3,3]);x.beginPath();
+    x.moveTo(58,Y(start));x.lineTo(W-14,Y(start));x.stroke();x.setLineDash([]);}
+
+  const up=v[v.length-1]>=v[0];
   x.lineWidth=1.6;x.strokeStyle=up?"#3fb98a":"#e8654f";x.beginPath();
-  curve.forEach((p,i)=>i?x.lineTo(X(i),Y(p.equity)):x.moveTo(X(i),Y(p.equity)));x.stroke();
-  const g2=x.createLinearGradient(0,16,0,H-30),c=up?"63,185,138":"232,101,79";
+  view.forEach((p,i)=>i?x.lineTo(X(i),Y(p.equity)):x.moveTo(X(i),Y(p.equity)));x.stroke();
+  const g2=x.createLinearGradient(0,16,0,H-36),c=up?"63,185,138":"232,101,79";
   g2.addColorStop(0,`rgba(${c},.16)`);g2.addColorStop(1,`rgba(${c},0)`);
-  x.lineTo(X(curve.length-1),H-30);x.lineTo(X(0),H-30);x.closePath();x.fillStyle=g2;x.fill();
-  x.fillStyle="#6b7885";x.fillText(curve[0].date,52,H-12);
-  x.textAlign="right";x.fillText(curve[curve.length-1].date,W-14,H-12);x.textAlign="left";
+  x.lineTo(X(view.length-1),H-36);x.lineTo(X(0),H-36);x.closePath();x.fillStyle=g2;x.fill();
+
+  x.fillStyle="#6b7885";x.fillText(view[0].date,58,H-12);
+  x.textAlign="right";x.fillText(view[view.length-1].date,W-14,H-12);x.textAlign="left";
+
+  if(DRAG){
+    x.fillStyle="rgba(226,185,59,.14)";
+    x.fillRect(Math.min(DRAG.a,DRAG.b),16,Math.abs(DRAG.b-DRAG.a),H-52);
+  }
 }
+
+function frac(ev){
+  const cv=document.getElementById("eq"),r=cv.getBoundingClientRect();
+  const m=cv._map||{X0:58,X1:r.width-14};
+  return Math.max(0,Math.min(1,(ev.clientX-r.left-m.X0)/(m.X1-m.X0)));
+}
+function redraw(){ if(DATA) drawEq(DATA.bt.equity_curve||[],DATA.bt.stats.start_capital); }
+
+(function(){
+  const cv=document.getElementById("eq");
+  cv.addEventListener("mousedown",e=>{DRAG={a:e.clientX-cv.getBoundingClientRect().left,
+    b:e.clientX-cv.getBoundingClientRect().left,f0:frac(e)};});
+  cv.addEventListener("mousemove",e=>{if(!DRAG)return;
+    DRAG.b=e.clientX-cv.getBoundingClientRect().left;DRAG.f1=frac(e);redraw();});
+  addEventListener("mouseup",()=>{
+    if(DRAG&&DRAG.f1!=null&&Math.abs(DRAG.f1-DRAG.f0)>0.01){
+      const span=Z1-Z0,a=Z0+Math.min(DRAG.f0,DRAG.f1)*span,b=Z0+Math.max(DRAG.f0,DRAG.f1)*span;
+      Z0=a;Z1=b;}
+    DRAG=null;redraw();});
+  cv.addEventListener("wheel",e=>{
+    e.preventDefault();
+    const f=Z0+frac(e)*(Z1-Z0),k=e.deltaY>0?1.18:0.85,span=(Z1-Z0)*k;
+    Z0=Math.max(0,f-span/2);Z1=Math.min(1,f+span/2);
+    if(Z1-Z0<0.005){const m=(Z0+Z1)/2;Z0=m-0.0025;Z1=m+0.0025;}
+    redraw();},{passive:false});
+  document.getElementById("zoomOut").onclick=()=>{
+    const m=(Z0+Z1)/2,span=Math.min(1,(Z1-Z0)*1.8);
+    Z0=Math.max(0,m-span/2);Z1=Math.min(1,m+span/2);redraw();};
+  document.getElementById("zoomReset").onclick=()=>{Z0=0;Z1=1;redraw();};
+})();
 
 document.querySelectorAll(".fbtn").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".fbtn").forEach(z=>z.classList.remove("on"));
   b.classList.add("on");FILTER=b.dataset.f;renderTrades();});
-addEventListener("resize",()=>DATA&&drawEq(DATA.bt.equity_curve||[],DATA.bt.stats.start_capital));
+addEventListener("resize",redraw);
 load();
 </script>
 </body>

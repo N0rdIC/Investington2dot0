@@ -31,7 +31,7 @@ STATE = Path(__file__).resolve().parent.parent / "state" / "portfolio.json"
 
 @dataclass
 class Costs:
-    commission: float = 0.0004      # per side (IBKR-ish); set 0.0008 for Saxo
+    commission: float = 0.0008      # per side (Saxo); set 0.0004 for IBKR
     half_spread: float = 0.0003     # per side
     entry_slip: float = 0.0005      # adverse slippage entering at open
     profit_slip: float = 0.0010     # you don't get the exact barrier touch

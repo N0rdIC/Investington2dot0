@@ -203,6 +203,8 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
             tgt, stp = ep * (1 - p["up"]), ep * (1 + p["down"])
         open_enriched.append({
             **p,
+            "size": CAPITAL_PER_TRADE,
+            "shares": round(CAPITAL_PER_TRADE / ep, 2) if ep else None,
             "target_price": round(tgt, 2),
             "stop_price": round(stp, 2),
             "days_left": max(0, p["horizon"] - p["days_held"]),
@@ -213,6 +215,7 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
         "model_trained_at": meta.get("trained_at"),
         "signal_date": signal_date,
         "min_expectancy": meta.get("min_expectancy"),
+        "position_size": CAPITAL_PER_TRADE,
         "barrier": {"up": meta["up"], "down": meta["down"], "horizon": meta["horizon"]},
         "equity": {
             "current": round(cur_eq, 2),
@@ -234,12 +237,16 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
         "top_longs": [
             {"ticker": t, "p": round(float(r["p_win_long"]), 3),
              "p_stop": round(float(r["p_stop_long"]), 3),
+             "sigma_d_pct": (round(float(r["sigma_d"]) * 100, 2)
+                             if "sigma_d" in scores.columns and pd.notna(r["sigma_d"]) else None),
              "E_pct": round(float(r["E_long"]) * 100, 3)}
             for t, r in scores.nlargest(10, "E_long").iterrows()
         ],
         "top_shorts": [
             {"ticker": t, "p": round(float(r["p_win_short"]), 3),
              "p_stop": round(float(r["p_stop_short"]), 3),
+             "sigma_d_pct": (round(float(r["sigma_d"]) * 100, 2)
+                             if "sigma_d" in scores.columns and pd.notna(r["sigma_d"]) else None),
              "E_pct": round(float(r["E_short"]) * 100, 3)}
             for t, r in scores.nlargest(10, "E_short").iterrows()
         ],

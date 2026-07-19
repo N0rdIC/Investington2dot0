@@ -93,6 +93,8 @@ def simulate_history(preds: dict, close: pd.DataFrame, meta: dict,
                 cash += slot * (1.0 + net)
                 trades.append({
                     "ticker": pos["ticker"], "side": pos["side"],
+                    "size": round(slot, 2),
+                    "shares": round(slot / pos["entry_price"], 2),
                     "entry_date": str(pd.Timestamp(pos["entry_date"]).date()),
                     "exit_date": str(pd.Timestamp(close.index[pos["exit_idx"]]).date()),
                     "entry_price": round(pos["entry_price"], 3),
@@ -157,7 +159,9 @@ def simulate_history(preds: dict, close: pd.DataFrame, meta: dict,
         curve.append({"date": str(pd.Timestamp(dt).date()), "equity": round(mtm, 2)})
 
     return {"equity_curve": curve, "trades": trades,
-            "stats": _stats(curve, trades, capital)}
+            "stats": {**_stats(curve, trades, capital),
+                      "position_size": round(capital / max_positions, 2),
+                      "max_positions": max_positions}}
 
 
 def _stats(curve, trades, capital):
@@ -203,6 +207,15 @@ def _stats(curve, trades, capital):
 
     return {
         "start_capital": capital,
+        "position_size": round(capital / 10.0, 2),
+        "n_wins": len(wins),
+        "n_losses": len(losses),
+        "gross_profit": round(gp, 2),
+        "gross_loss": round(gl, 2),
+        "net_pnl": round(gp - gl, 2),
+        "best_trade_pct": round(max((t["net_pct"] for t in trades), default=0), 2),
+        "worst_trade_pct": round(min((t["net_pct"] for t in trades), default=0), 2),
+        "avg_days_held": round(float(np.mean([t["days"] for t in trades])), 1) if trades else None,
         "final_equity": round(float(eq[-1]), 2),
         "total_return_pct": round(total * 100, 2),
         "cagr_pct": round(cagr * 100, 2),

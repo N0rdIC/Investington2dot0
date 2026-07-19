@@ -33,6 +33,18 @@ def compute_features(close, volume, factor_close, stress_close=None):
     return cross_sectional_zscore(panel)
 
 
+def realized_sigma(close, lookback=126):
+    """Daily volatility over ~6 months, per name.
+
+    Reported alongside every signal because barrier reachability depends on it:
+    with +/-6% barriers over 10 days, sigma_d=2.0% makes the target a 0.95-sigma
+    move (routinely hit), while sigma_d=1.2% makes it 1.6-sigma (rarely hit, so
+    the trade just times out and pays commission for nothing).
+    """
+    r = close.pct_change()
+    return r.tail(lookback).std()
+
+
 def latest_scores(close, volume, factor_close, stress_close, models, meta):
     """Calibrated probabilities and expectancy per ticker, for both sides."""
     X = compute_features(close, volume, factor_close, stress_close)
@@ -43,6 +55,13 @@ def latest_scores(close, volume, factor_close, stress_close, models, meta):
     cal = load_calibration()
     G, L, c = meta["up"], meta["down"], meta.get("cost", 0.0014)
     out = pd.DataFrame(index=Xt.index)
+
+    # 6-month realised vol, and how many sigma the barrier represents
+    sig = realized_sigma(close).reindex(Xt.index)
+    H = meta.get("horizon", 10)
+    out["sigma_d"] = sig
+    out["sigma_h"] = sig * np.sqrt(H)
+    out["barrier_sigmas"] = G / out["sigma_h"].replace(0, np.nan)
 
     for side in ("long", "short"):
         P = models[side].predict_proba(Xt.to_numpy())
@@ -64,7 +83,13 @@ def pick_signals(scores, meta, n_side=5, min_tilt=None, margin=None):
     """Fire only where predicted expectancy clears the validated gate."""
     G, L = meta["up"], meta["down"]
     default_gate = meta.get("min_expectancy", 0.005)
+    min_sig = meta.get("min_sigma_daily", 0.0) or 0.0
     sig = []
+
+    # volatility floor: a name that cannot plausibly reach the barrier within
+    # the horizon will just time out, paying commission for no outcome.
+    if min_sig > 0 and "sigma_d" in scores.columns:
+        scores = scores[scores["sigma_d"].fillna(0) >= min_sig]
 
     for side in ("long", "short"):
         gate = meta.get(f"min_E_{side}")
@@ -78,6 +103,10 @@ def pick_signals(scores, meta, n_side=5, min_tilt=None, margin=None):
         for t, r in cand.iterrows():
             sig.append({
                 "ticker": t, "side": side,
+                "sigma_d_pct": round(float(r.get("sigma_d", float("nan"))) * 100, 2)
+                                if pd.notna(r.get("sigma_d")) else None,
+                "barrier_sigmas": round(float(r.get("barrier_sigmas", float("nan"))), 2)
+                                if pd.notna(r.get("barrier_sigmas")) else None,
                 "p": round(float(r[f"p_win_{side}"]), 4),
                 "p_stop": round(float(r[f"p_stop_{side}"]), 4),
                 "p_time": round(float(r[f"p_time_{side}"]), 4),

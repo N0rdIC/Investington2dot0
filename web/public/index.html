@@ -172,33 +172,36 @@ async function load() {
   drawChart(d.equity_curve || []);
 
   document.getElementById("signals").innerHTML = d.todays_signals?.length ? table(
-    ["Ticker","Side","Ref","Target","Stop","P","Tilt"],
+    ["Ticker","Side","σ 6m","Ref","Target","Stop","Size","E"],
     d.todays_signals.map(s=>[
       s.ticker, `<span class="tag ${s.side}">${s.side}</span>`,
+      sigCell(s.sigma_d_pct, s.barrier_sigmas),
       `<span class="pnum dim">${s.ref_price!==undefined?F(s.ref_price):"—"}</span>`,
       `<span class="pnum pos">${s.target_price!==undefined?F(s.target_price):"—"}</span>`,
       `<span class="pnum neg">${s.stop_price!==undefined?F(s.stop_price):"—"}</span>`,
-      `<span class="pnum">${s.p.toFixed(3)}</span>`,
-      tiltCell(s.tilt!==undefined ? Math.abs(s.tilt) * (s.side==="long"?1:-1) : undefined)
-    ]), [0,0,1,1,1,1,1]
+      `<span class="pnum dim">$${d.position_size?Number(d.position_size).toLocaleString():"—"}</span>`,
+      `<span class="pnum ${s.E_pct>0?'pos':'neg'}">${s.E_pct!=null?(s.E_pct>0?"+":"")+s.E_pct.toFixed(2)+"%":"—"}</span>`
+    ]), [0,0,1,1,1,1,1,1]
   ) : `<div class="empty">No signals passed both the expectancy and direction gates today.</div>`;
 
   document.getElementById("open").innerHTML = d.open_positions?.length ? table(
-    ["Ticker","Side","Entry","Target","Stop","Left"],
+    ["Ticker","Side","Entry","Target","Stop","Size","Shares","Left"],
     d.open_positions.map(p=>[
       p.ticker, `<span class="tag ${p.side}">${p.side}</span>`,
       `<span class="pnum">${F(p.entry_price)}</span>`,
       `<span class="pnum pos">${p.target_price!==undefined?F(p.target_price):"—"}</span>`,
       `<span class="pnum neg">${p.stop_price!==undefined?F(p.stop_price):"—"}</span>`,
+      `<span class="pnum dim">$${p.size?Number(p.size).toLocaleString():"—"}</span>`,
+      `<span class="pnum dim">${p.shares!=null?F(p.shares,1):"—"}</span>`,
       `<span class="pnum dim">${p.days_left!==undefined?p.days_left+"d":p.days_held}</span>`
-    ]), [0,0,1,1,1,1]
+    ]), [0,0,1,1,1,1,1,1]
   ) : `<div class="empty">No open positions.</div>`;
 
   const thr = d.threshold;
   document.getElementById("scoresLong").innerHTML = table(
     ["Ticker","P(win) cal","raw","vs thresh"],
     (d.top_longs||[]).map(s=>[
-      s.ticker,
+      s.ticker, sigCell(s.sigma_d_pct, null),
       `<span class="pnum ${thr!=null && s.p>=thr?'pos':'dim'}">${s.p.toFixed(3)}</span>`,
       `<span class="pnum dim">${s.p_raw!=null?s.p_raw.toFixed(3):"—"}</span>`,
       thr==null ? `<span class="dim">—</span>`
@@ -329,6 +332,16 @@ function renderModelQ(d) {
       · <a href="backtest.html" style="color:var(--accent)">full backtest log →</a>
     </div>
   </div>`;
+}
+
+function sigCell(sd, bs) {
+  if (sd==null) return `<span class="dim">—</span>`;
+  // barrier_sigmas = how many sigma the target is over the horizon.
+  // Measured timeout rates: 0.63 sigma -> 15%, 0.79 -> 26%, 0.84 -> 30%,
+  // 1.05 -> 44%. So flag anything above ~0.9.
+  const weak = bs!=null && bs > 0.9;
+  return `<span class="pnum ${weak?'ambig':''}" ${weak?'title="barrier is a long reach for this name — expect timeouts"':''}>`
+       + `${sd.toFixed(1)}%${bs!=null?` <span style="opacity:.6">${bs.toFixed(1)}σ</span>`:""}${weak?" ⚠":""}</span>`;
 }
 
 function tiltCell(t) {

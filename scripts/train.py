@@ -50,7 +50,6 @@ from backtest_sim import simulate_history
 MODEL_DIR = Path(__file__).resolve().parent.parent / "model"
 MODEL_DIR.mkdir(exist_ok=True)
 
-UP, DOWN = 0.06, 0.03
 VOL_CAP_COLS = {"rvol_252", "rvol_60", "rvol_ratio", "rvol_ratio_long",
                 "vol_of_vol", "mkt_stress", "mkt_stress_z"}
 
@@ -84,6 +83,7 @@ def make_fitter(cfg, feature_cols):
 def main():
     cfg = Config()
     H = cfg.label.horizon
+    UP, DOWN = cfg.barrier_up, cfg.barrier_down
     print(f"Downloading {len(cfg.universe)} names...  horizon={H}d  "
           f"barriers +{UP:.0%}/-{DOWN:.0%}")
     px = load_yahoo(cfg.universe, cfg.start, cfg.end)
@@ -141,6 +141,7 @@ def main():
         "universe": list(close.columns),
         "up": UP, "down": DOWN, "horizon": H,
         "min_expectancy": cfg.min_expectancy,
+        "min_sigma_daily": cfg.min_sigma_daily,
         "min_E_long": results["long"].get("min_E"),
         "min_E_short": results["short"].get("min_E"),
         "r_timeout_long": results["long"].get("r_timeout_pct", 0.0) / 100.0,
