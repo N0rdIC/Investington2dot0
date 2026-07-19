@@ -1,6 +1,6 @@
 {
   "model_type": "per_side_outcome",
-  "trained_at": "2026-07-19T08:32:53.776815+00:00",
+  "trained_at": "2026-07-19T18:27:46.656646+00:00",
   "features": [
     "rev_1",
     "rev_3",
@@ -161,27 +161,28 @@
     "XPEV",
     "ZS"
   ],
-  "up": 0.06,
-  "down": 0.03,
+  "up": 0.05,
+  "down": 0.05,
   "horizon": 10,
   "min_expectancy": 0.005,
-  "min_E_long": 0.005,
-  "min_E_short": 0.005,
-  "r_timeout_long": 0.01466,
-  "r_timeout_short": 0.01159,
+  "min_sigma_daily": 0.018,
+  "min_E_long": 0.0,
+  "min_E_short": null,
+  "r_timeout_long": 0.00181,
+  "r_timeout_short": -0.00181,
   "cost": 0.002,
   "outcome_distribution": {
     "long": {
       "n": 390271,
-      "stop_pct": 49.17,
-      "timeout_pct": 20.69,
-      "win_pct": 30.14
+      "stop_pct": 34.78,
+      "timeout_pct": 26.58,
+      "win_pct": 38.64
     },
     "short": {
       "n": 390271,
-      "stop_pct": 53.57,
-      "timeout_pct": 19.5,
-      "win_pct": 26.93
+      "stop_pct": 38.64,
+      "timeout_pct": 26.58,
+      "win_pct": 34.78
     }
   },
   "train_start": "2005-01-03",
