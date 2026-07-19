@@ -142,6 +142,10 @@ def evaluate_side(X, y, r_timeout, cfg, fit_fn, G, L, side="long", n_splits=4):
         er = [r["E_realised_pct"] for r in rows]
         monotone = bool(er[-1] >= er[0])
 
+    # OOS predictions with calibrated probabilities and expectancy attached,
+    # consumed by backtest_sim.simulate_history to build the equity curve.
+    oos = pd.DataFrame({"p_win": cw, "p_stop": cs, "E": E_pred}, index=P.index)
+
     return {
         "side": side,
         "oos_predictions": oos,
