@@ -57,7 +57,13 @@ def simulate_history(preds: dict, close: pd.DataFrame, meta: dict,
     up, down = meta["up"], meta["down"]
     horizon = meta["horizon"]
     cost = meta.get("cost", 0.0014)
-    gates = {s: meta.get(f"min_E_{s}") for s in ("long", "short")}
+    # EFFECTIVE gate must match what signal_engine.pick_signals applies live,
+    # or the equity curve describes a strategy you would never actually trade.
+    floor = meta.get("min_expectancy", 0.005) or 0.0
+    gates = {}
+    for s_ in ("long", "short"):
+        g = meta.get(f"min_E_{s_}")
+        gates[s_] = None if g is None else max(g, floor)
 
     # union of dates that have predictions
     all_dates = sorted(set().union(*[

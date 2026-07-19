@@ -121,15 +121,26 @@ def evaluate_side(X, y, r_timeout, cfg, fit_fn, G, L, side="long", n_splits=4):
             "E_realised_pct": round(float(realised[m].mean()) * 100, 3),
         })
 
-    rec = None
-    target = cfg.__dict__.get("min_expectancy", 0.005)
-    ok = [r for r in rows if r["n_signals"] >= 150 and r["E_realised_pct"] > 0]
-    if ok:
-        at = [r for r in ok if r["min_E_pct"] >= target * 100]
-        rec = at[0] if at else max(ok, key=lambda r: r["min_E_pct"])
+    # ---- pick the operating gate -------------------------------------------
+    # HARD FLOOR: never recommend a gate below the configured min_expectancy.
+    # The earlier version fell back to the lowest gate with positive realised E
+    # whenever nothing cleared the floor, which silently discarded the user's
+    # risk preference and produced a "recommendation" of E >= 0 -- i.e. trade
+    # everything. If nothing at or above the floor earns money out-of-sample,
+    # the correct answer is to trade nothing.
+    floor = getattr(cfg, "min_expectancy", 0.005)
+    eligible = [r for r in rows
+                if r["min_E_pct"] >= floor * 100 - 1e-9      # respect the floor
+                and r["n_signals"] >= 150                    # enough to believe
+                and r["E_realised_pct"] > 0]                 # actually made money
+    rec = min(eligible, key=lambda r: r["min_E_pct"]) if eligible else None
 
-    # OOS predictions with expectancy attached, for the historical simulator
-    oos = pd.DataFrame({"p_win": cw, "p_stop": cs, "E": E_pred}, index=P.index)
+    # diagnostic: does higher conviction actually help? If realised E falls as
+    # the gate rises, the ranking is anti-predictive and no gate will save it.
+    monotone = None
+    if len(rows) >= 2:
+        er = [r["E_realised_pct"] for r in rows]
+        monotone = bool(er[-1] >= er[0])
 
     return {
         "side": side,
@@ -146,6 +157,8 @@ def evaluate_side(X, y, r_timeout, cfg, fit_fn, G, L, side="long", n_splits=4):
         "sweep": rows,
         "recommended": rec,
         "min_E": rec["min_E_pct"] / 100 if rec else None,
+        "floor_pct": round(getattr(cfg, "min_expectancy", 0.005) * 100, 2),
+        "gate_monotone": monotone,
         "n_eval": int(len(P)),
         "n_years": round(n_years, 1),
     }
@@ -176,9 +189,13 @@ def print_report_side(m):
               f"{r['win_rate_pct']:>6.1f}% {r['stop_rate_pct']:>6.1f}% "
               f"{r['E_predicted_pct']:>+7.2f}% {r['E_realised_pct']:>+7.2f}%{star}")
 
+    if m.get("gate_monotone") is False:
+        print("  WARNING: realised E FALLS as the gate rises -- the expectancy")
+        print("           ranking is anti-predictive. Raising conviction makes it worse.")
     rec = m.get("recommended")
     if rec is None:
-        print("  VERDICT: no gate produces a positive realised E -> DO NOT TRADE this side.")
+        print(f"  VERDICT: no gate at or above the {m.get('floor_pct')}% floor has a")
+        print(f"           positive realised E -> DO NOT TRADE this side.")
     else:
         print(f"  RECOMMENDED gate E >= {rec['min_E_pct']:.2f}%  ->  "
               f"realised E {rec['E_realised_pct']:+.2f}%/trade, "

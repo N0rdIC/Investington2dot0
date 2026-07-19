@@ -158,7 +158,12 @@ def main():
     print("\nRunning historical portfolio simulation (out-of-sample)...")
     preds = {s: results[s]["oos_predictions"] for s in ("long", "short")
              if "oos_predictions" in results[s]}
-    bt = simulate_history(preds, close, meta) if preds else None
+    tradeable = [sd for sd in ("long", "short") if results[sd].get("min_E") is not None]
+    if not tradeable:
+        print("  NO SIDE PASSED ITS GATE -- nothing to simulate.")
+        print("  This is a real result, not a failure: at the required expectancy")
+        print("  floor the model does not earn money out-of-sample.")
+    bt = simulate_history(preds, close, meta) if (preds and tradeable) else None
     if bt:
         st = bt["stats"]
         print(f"  {st['period_start']} -> {st['period_end']}  ({st['years']}y)")
