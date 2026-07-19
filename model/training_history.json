@@ -1148,5 +1148,173 @@
         "n_years": 19.5
       }
     }
+  },
+  {
+    "trained_at": "2026-07-19T08:14:33.159453+00:00",
+    "train_end": "2026-06-30",
+    "n_samples": 390271,
+    "n_names": 110,
+    "n_features": 46,
+    "horizon": 10,
+    "metrics": {
+      "long": {
+        "side": "long",
+        "auc_win": 0.5692,
+        "auc_stop": 0.5426,
+        "base": {
+          "win_pct": 30.45,
+          "stop_pct": 49.68,
+          "timeout_pct": 19.86
+        },
+        "naive_pstar_pct": 35.56,
+        "true_breakeven_pct": 28.18,
+        "r_timeout_pct": 1.466,
+        "calibration_win": {
+          "brier": 0.21149,
+          "ece": 0.03504,
+          "bias": 0.02752,
+          "base_rate": 0.30454,
+          "mean_pred": 0.27703
+        },
+        "sweep": [
+          {
+            "min_E_pct": 0.0,
+            "n_signals": 362576,
+            "per_year": 18589.4,
+            "win_rate_pct": 30.49,
+            "stop_rate_pct": 49.71,
+            "E_predicted_pct": 0.435,
+            "E_realised_pct": 0.427
+          },
+          {
+            "min_E_pct": 0.25,
+            "n_signals": 310642,
+            "per_year": 15926.7,
+            "win_rate_pct": 30.97,
+            "stop_rate_pct": 50.52,
+            "E_predicted_pct": 0.481,
+            "E_realised_pct": 0.412
+          },
+          {
+            "min_E_pct": 0.5,
+            "n_signals": 124205,
+            "per_year": 6368.0,
+            "win_rate_pct": 34.42,
+            "stop_rate_pct": 54.5,
+            "E_predicted_pct": 0.657,
+            "E_realised_pct": 0.382
+          },
+          {
+            "min_E_pct": 0.75,
+            "n_signals": 28583,
+            "per_year": 1465.5,
+            "win_rate_pct": 34.13,
+            "stop_rate_pct": 53.17,
+            "E_predicted_pct": 0.839,
+            "E_realised_pct": 0.406
+          },
+          {
+            "min_E_pct": 1.0,
+            "n_signals": 820,
+            "per_year": 42.0,
+            "win_rate_pct": 22.32,
+            "stop_rate_pct": 36.46,
+            "E_predicted_pct": 1.03,
+            "E_realised_pct": 0.208
+          }
+        ],
+        "recommended": {
+          "min_E_pct": 0.5,
+          "n_signals": 124205,
+          "per_year": 6368.0,
+          "win_rate_pct": 34.42,
+          "stop_rate_pct": 54.5,
+          "E_predicted_pct": 0.657,
+          "E_realised_pct": 0.382
+        },
+        "min_E": 0.005,
+        "n_eval": 367934,
+        "n_years": 19.5
+      },
+      "short": {
+        "side": "short",
+        "auc_win": 0.5707,
+        "auc_stop": 0.538,
+        "base": {
+          "win_pct": 27.49,
+          "stop_pct": 53.78,
+          "timeout_pct": 18.73
+        },
+        "naive_pstar_pct": 35.56,
+        "true_breakeven_pct": 30.22,
+        "r_timeout_pct": 1.159,
+        "calibration_win": {
+          "brier": 0.19916,
+          "ece": 0.03569,
+          "bias": 0.03543,
+          "base_rate": 0.27492,
+          "mean_pred": 0.23949
+        },
+        "sweep": [
+          {
+            "min_E_pct": 0.0,
+            "n_signals": 202527,
+            "per_year": 10383.6,
+            "win_rate_pct": 28.36,
+            "stop_rate_pct": 53.24,
+            "E_predicted_pct": 0.211,
+            "E_realised_pct": 0.1
+          },
+          {
+            "min_E_pct": 0.25,
+            "n_signals": 68941,
+            "per_year": 3534.6,
+            "win_rate_pct": 35.97,
+            "stop_rate_pct": 55.63,
+            "E_predicted_pct": 0.443,
+            "E_realised_pct": 0.388
+          },
+          {
+            "min_E_pct": 0.5,
+            "n_signals": 19734,
+            "per_year": 1011.8,
+            "win_rate_pct": 38.06,
+            "stop_rate_pct": 53.71,
+            "E_predicted_pct": 0.668,
+            "E_realised_pct": 0.557
+          },
+          {
+            "min_E_pct": 0.75,
+            "n_signals": 3901,
+            "per_year": 200.0,
+            "win_rate_pct": 39.07,
+            "stop_rate_pct": 51.4,
+            "E_predicted_pct": 0.891,
+            "E_realised_pct": 0.681
+          },
+          {
+            "min_E_pct": 1.0,
+            "n_signals": 839,
+            "per_year": 43.0,
+            "win_rate_pct": 46.6,
+            "stop_rate_pct": 44.58,
+            "E_predicted_pct": 1.05,
+            "E_realised_pct": 1.306
+          }
+        ],
+        "recommended": {
+          "min_E_pct": 0.5,
+          "n_signals": 19734,
+          "per_year": 1011.8,
+          "win_rate_pct": 38.06,
+          "stop_rate_pct": 53.71,
+          "E_predicted_pct": 0.668,
+          "E_realised_pct": 0.557
+        },
+        "min_E": 0.005,
+        "n_eval": 367934,
+        "n_years": 19.5
+      }
+    }
   }
 ]
