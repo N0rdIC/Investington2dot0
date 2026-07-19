@@ -34,7 +34,7 @@ N_SIDE = 5
 
 def main():
     cfg = Config()
-    model, meta = load_models()
+    models, meta = load_models()
     universe = meta["universe"]
 
     # only need ~2 years of history to build all features for the latest bar
@@ -47,7 +47,7 @@ def main():
     close = close.loc[:, close.notna().sum() > 200]
     volume = volume.reindex(columns=close.columns)
 
-    scores = latest_scores(close, volume, fx["close"], sx["close"], model, meta)
+    scores = latest_scores(close, volume, fx["close"], sx["close"], models, meta)
     signals = pick_signals(scores, meta, n_side=N_SIDE)
     signal_date = scores["date"].iloc[0] if len(scores) else None
 
@@ -231,19 +231,20 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
         "glp": _realized_glp(closed, meta),
         "todays_signals": signals,
         "top_longs": [
-            {"ticker": t, "p": round(float(r["p_long"]), 3),
-             "p_raw": round(float(r["p_long_raw"]), 3),
-             "tilt": round(float(r["tilt"]), 3)}
-            for t, r in scores.nlargest(10, "p_long").iterrows()
+            {"ticker": t, "p": round(float(r["p_win_long"]), 3),
+             "p_stop": round(float(r["p_stop_long"]), 3),
+             "E_pct": round(float(r["E_long"]) * 100, 3)}
+            for t, r in scores.nlargest(10, "E_long").iterrows()
         ],
         "top_shorts": [
-            {"ticker": t, "p": round(float(r["p_short"]), 3),
-             "p_raw": round(float(r["p_short_raw"]), 3),
-             "tilt": round(float(-r["tilt"]), 3)}
-            for t, r in scores.nlargest(10, "p_short").iterrows()
+            {"ticker": t, "p": round(float(r["p_win_short"]), 3),
+             "p_stop": round(float(r["p_stop_short"]), 3),
+             "E_pct": round(float(r["E_short"]) * 100, 3)}
+            for t, r in scores.nlargest(10, "E_short").iterrows()
         ],
-        "threshold": meta.get("threshold_long"),
-        "threshold_short": meta.get("threshold_short"),
+        "gate_long_pct": (meta.get("min_E_long") or 0) * 100,
+        "gate_short_pct": (meta.get("min_E_short") or 0) * 100,
+        "horizon": meta.get("horizon"),
         "model_type": meta.get("model_type", "2model"),
         "training_history": _load_history(),
         "calibration": _load_calibration_curve(),

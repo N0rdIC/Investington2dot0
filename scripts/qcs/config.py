@@ -103,7 +103,7 @@ class PortfolioCfg:
 
 @dataclass
 class LabelCfg:
-    horizon: int = 5           # forward return horizon in trading days
+    horizon: int = 10          # forward return horizon in trading days
     demean: bool = True        # cross-sectionally demean -> pure ranking target
 
 
@@ -112,7 +112,7 @@ class CVCfg:
     n_splits: int = 6
     # Purge = label horizon. Any train sample whose label window overlaps the
     # test window is dropped. Without this, the backtest leaks and lies.
-    purge: int = 5
+    purge: int = 10            # must equal the label horizon
     # Embargo: extra days dropped after the test block to kill serial-correlation
     # leakage from features (e.g. a 60-day EWMA straddling the boundary).
     embargo: int = 10
@@ -143,5 +143,9 @@ class Config:
     model: ModelCfg = field(default_factory=ModelCfg)
     # Column-sampling weight for volatility features (< 1 caps their dominance).
     model_vol_cap_weight: float = 0.25
+    # Minimum predicted expectancy (as a fraction) required to fire a signal.
+    # 0.005 = 0.5%. A margin above zero absorbs estimation error in p_win/p_stop,
+    # gap slippage on stops, and borrow cost on the short book.
+    min_expectancy: float = 0.005
     start: str = "2005-01-01"
     end: str = "2026-07-01"

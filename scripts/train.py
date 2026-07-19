@@ -1,32 +1,33 @@
-"""Train and freeze the 3-class barrier model, with per-side calibration.
+"""Train per-side outcome models (WIN / STOP / TIMEOUT) with expectancy gating.
 
-WHY 3 CLASSES
--------------
-One softmax over {SHORT_WIN, NEITHER, LONG_WIN} instead of two independent
-binary models. The three outcomes are mutually exclusive by construction (a path
-that reaches +6% before -3% crossed +3% on the way, which is the short's stop),
-so the softmax constraint p_short + p_neither + p_long = 1 is not an
-approximation -- it is the truth. Two separate binary models violated it in ~40%
-of predictions.
+WHAT CHANGED AND WHY
+--------------------
+Previously the label answered "which side wins" -- {SHORT_WIN, NEITHER,
+LONG_WIN}. That conflates two very different fates for a given trade: NEITHER is
+about 60% stop-outs and 40% timeouts. Without separating them you cannot compute
+expectancy, and the substitute test P* = (L+c)/(G+L) assumes every non-win is a
+full -L loss, which is false whenever the time barrier binds -- and it made a
+profitable model look unprofitable.
 
-WHY CALIBRATION IS STILL NEEDED
--------------------------------
-A class probability is NOT a success rate. Regularisation and the multiclass
-normalisation both distort it. We fit isotonic regression on OUT-OF-SAMPLE
-predictions, separately per side, to map
+Now each side gets its own softmax over its OWN outcome space:
 
-    class probability  ->  observed success rate
+    {STOP, TIMEOUT, WIN}   ->   p_stop + p_timeout + p_win = 1
 
-and only the calibrated value is compared against breakeven P*.
+and the decision is economic rather than probabilistic:
 
-No class weighting is applied: the three classes are near-balanced, and
-weighting would decalibrate the very quantity we need to read as a probability.
+    E = p_win*G - p_stop*L + p_timeout*r_timeout - c
+    trade if E >= min_expectancy   (default 0.5%)
+
+HORIZON = 10 DAYS
+-----------------
+At 5 days the time barrier bound hard: for a 2%-vol name, ~52% of paths reached
+neither barrier, dragging the win rate to ~12%. Ten days roughly doubles the win
+rate and cuts timeouts to ~24%, because a +/-6% move needs ~1.3 sigma at 5 days
+but only ~0.95 sigma at 10.
 
 Outputs:
-    ../model/model3.json
-    ../model/meta.json
-    ../model/calibration.json
-    ../model/training_history.json
+    ../model/model_long.json, model_short.json
+    ../model/meta.json, calibration.json, training_history.json
 """
 from __future__ import annotations
 
@@ -41,8 +42,8 @@ import xgboost as xgb
 from qcs.config import Config
 from qcs.data import load_yahoo
 from qcs.features import build_features, cross_sectional_zscore
-from qcs.labels3 import joint_barrier_labels, class_distribution, verify_exhaustive
-from evaluate3 import evaluate3, print_report3
+from qcs.labels_side import side_outcome_labels, timeout_returns, outcome_distribution
+from evaluate_side import evaluate_side, print_report_side
 from evaluate import append_history, HISTORY
 
 MODEL_DIR = Path(__file__).resolve().parent.parent / "model"
@@ -70,7 +71,8 @@ def make_fitter(cfg, feature_cols):
             objective="multi:softprob", num_class=3, eval_metric="mlogloss",
             feature_weights=fw, n_jobs=4, verbosity=0,
         )
-        # only the label-overlap correction; NO class weighting (see docstring)
+        # only the label-overlap correction; no class weighting (it would
+        # decalibrate the probabilities that expectancy depends on)
         mdl.fit(Xtr.to_numpy(), ytr.to_numpy().astype(int),
                 sample_weight=np.full(len(ytr), 1.0 / cfg.label.horizon))
         return mdl
@@ -80,7 +82,9 @@ def make_fitter(cfg, feature_cols):
 
 def main():
     cfg = Config()
-    print(f"Downloading {len(cfg.universe)} names...")
+    H = cfg.label.horizon
+    print(f"Downloading {len(cfg.universe)} names...  horizon={H}d  "
+          f"barriers +{UP:.0%}/-{DOWN:.0%}")
     px = load_yahoo(cfg.universe, cfg.start, cfg.end)
     fx = load_yahoo(cfg.sector_etfs, cfg.start, cfg.end)
     sx = load_yahoo(cfg.stress_tickers, cfg.start, cfg.end)
@@ -90,74 +94,79 @@ def main():
     close, volume = close.loc[:, ok], volume.loc[:, ok]
     print(f"  {close.shape[1]} names x {close.shape[0]} days")
 
-    v = verify_exhaustive(close, UP, DOWN, cfg.label.horizon)
-    print(f"  exclusivity: overlap={v['overlap']}  exclusive={v['exclusive']}")
-    if not v["exclusive"]:
-        raise RuntimeError("class definition broken: long/short outcomes overlap")
-
     print("Building features...")
     X = cross_sectional_zscore(
         build_features(close, volume, fx["close"], stress_close=sx["close"]))
-    y = joint_barrier_labels(close, UP, DOWN, cfg.label.horizon)
 
-    idx = X.index.intersection(y.index)
-    X, y = X.loc[idx].sort_index(), y.loc[idx].sort_index()
-    mask = y.notna() & (X.notna().sum(axis=1) >= 0.5 * X.shape[1])
-    Xf, yf = X[mask], y[mask].astype(int)
+    results, models, dists = {}, {}, {}
+    for side in ("long", "short"):
+        y = side_outcome_labels(close, UP, DOWN, H, side)
+        rt = timeout_returns(close, UP, DOWN, H, side)
 
-    dist = class_distribution(yf)
-    p_star = (DOWN + cfg.costs.round_trip) / (UP + DOWN)
-    print(f"  samples={len(Xf)}  classes={dist}  P*={p_star:.4f}")
+        idx = X.index.intersection(y.index)
+        Xs, ys = X.loc[idx].sort_index(), y.loc[idx].sort_index()
+        mask = ys.notna() & (Xs.notna().sum(axis=1) >= 0.5 * Xs.shape[1])
+        Xf, yf = Xs[mask], ys[mask].astype(int)
+        dists[side] = outcome_distribution(yf)
+        print(f"\n{side.upper()}: {len(Xf)} samples  {dists[side]}")
 
-    fit = make_fitter(cfg, list(Xf.columns))
+        fit = make_fitter(cfg, list(Xf.columns))
+        print(f"  evaluating out-of-sample...")
+        m = evaluate_side(Xf, yf, rt.reindex(Xf.index), cfg, fit, UP, DOWN, side)
+        print_report_side(m)
+        results[side] = m
 
-    print("\nEvaluating out-of-sample (purged walk-forward)...")
-    metrics = evaluate3(Xf, yf, cfg, fit, p_star, UP, DOWN)
+        print(f"  fitting final {side} model on all data...")
+        models[side] = fit(Xf, yf)
+        models[side].save_model(str(MODEL_DIR / f"model_{side}.json"))
+        feat_cols = list(Xf.columns)
 
-    prev = None
-    if HISTORY.exists():
-        try:
-            h = json.loads(HISTORY.read_text())
-            prev = h[-1].get("metrics") if h else None
-        except (json.JSONDecodeError, IndexError, AttributeError):
-            prev = None
-    print_report3(metrics, prev)
-
-    print(f"\nFitting final model on all {len(Xf)} samples...")
-    model = fit(Xf, yf)
-    model.save_model(str(MODEL_DIR / "model3.json"))
+    # calibration maps for live use
+    (MODEL_DIR / "calibration.json").write_text(json.dumps({
+        "long": results["long"].get("cal_win", {}),
+        "long_stop": results["long"].get("cal_stop", {}),
+        "short": results["short"].get("cal_win", {}),
+        "short_stop": results["short"].get("cal_stop", {}),
+        "curve_long": results["long"].get("calibration_curve_win", []),
+        "curve_short": results["short"].get("calibration_curve_win", []),
+        "metrics_long": results["long"].get("calibration_win", {}),
+        "metrics_short": results["short"].get("calibration_win", {}),
+    }, indent=2))
 
     meta = {
-        "model_type": "3class_calibrated",
+        "model_type": "per_side_outcome",
         "trained_at": datetime.now(timezone.utc).isoformat(),
-        "features": list(Xf.columns),
+        "features": feat_cols,
         "universe": list(close.columns),
-        "up": UP, "down": DOWN, "horizon": cfg.label.horizon,
-        "p_star": p_star,
-        "class_distribution": dist,
-        "threshold_long": metrics.get("threshold_long"),
-        "threshold_short": metrics.get("threshold_short"),
+        "up": UP, "down": DOWN, "horizon": H,
+        "min_expectancy": cfg.min_expectancy,
+        "min_E_long": results["long"].get("min_E"),
+        "min_E_short": results["short"].get("min_E"),
+        "r_timeout_long": results["long"].get("r_timeout_pct", 0.0) / 100.0,
+        "r_timeout_short": results["short"].get("r_timeout_pct", 0.0) / 100.0,
+        "cost": cfg.costs.round_trip,
+        "outcome_distribution": dists,
         "train_start": str(close.index[0].date()),
         "train_end": str(close.index[-1].date()),
         "n_samples": int(len(Xf)),
     }
     (MODEL_DIR / "meta.json").write_text(json.dumps(meta, indent=2))
 
+    strip = lambda m: {k: v for k, v in m.items()
+                       if k not in ("cal_win", "cal_stop", "calibration_curve_win")}
     append_history({
-        "trained_at": meta["trained_at"],
-        "train_start": meta["train_start"], "train_end": meta["train_end"],
+        "trained_at": meta["trained_at"], "train_end": meta["train_end"],
         "n_samples": meta["n_samples"], "n_names": len(meta["universe"]),
-        "n_features": len(meta["features"]),
-        "metrics": metrics,
+        "n_features": len(feat_cols), "horizon": H,
+        "metrics": {"long": strip(results["long"]), "short": strip(results["short"])},
     })
 
-    for old in ("model_long.json", "model_short.json"):
+    for old in ("model3.json",):
         p = MODEL_DIR / old
         if p.exists():
             p.unlink(); print(f"  removed stale {old}")
 
-    print(f"\nSaved model3.json.  thresholds: long={metrics.get('threshold_long')}"
-          f"  short={metrics.get('threshold_short')}")
+    print(f"\nSaved. gates: long E>={meta['min_E_long']}  short E>={meta['min_E_short']}")
 
 
 if __name__ == "__main__":
