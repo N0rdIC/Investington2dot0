@@ -88,7 +88,12 @@
       <div class="title">BARRIER SIGNAL <span class="blink">▮</span> PAPER DESK</div>
       <div class="barbadge" id="barrier">—</div>
     </div>
-    <div class="meta" id="meta">loading…</div>
+    <div style="text-align:right">
+      <a href="backtest.html" style="color:var(--accent);text-decoration:none;font-size:11px;
+         border:1px solid var(--accent);padding:5px 12px;border-radius:4px;display:inline-block">
+         backtest log →</a>
+      <div class="meta" id="meta" style="margin-top:8px">loading…</div>
+    </div>
   </div>
 
   <div class="grid" id="kpis"></div>
@@ -145,7 +150,8 @@ async function load() {
 
   const b = d.barrier;
   document.getElementById("barrier").textContent =
-    `+${(b.up*100).toFixed(0)}% before −${(b.down*100).toFixed(0)}% within ${b.horizon}d · P* ${d.p_star.toFixed(3)}`;
+    `+${(b.up*100).toFixed(0)}% before −${(b.down*100).toFixed(0)}% within ${b.horizon}d`
+    + (d.gate_long_pct ? ` · gate E ≥ ${d.gate_long_pct.toFixed(2)}%` : "");
   document.getElementById("meta").innerHTML =
     `signal date <b>${d.signal_date||"—"}</b><br>updated ${new Date(d.updated_at).toLocaleString()}`;
 
@@ -287,75 +293,42 @@ function renderModelQ(d) {
   const el = document.getElementById("modelq");
   const h = d.training_history || [];
   if (!h.length) {
-    el.innerHTML = `<div class="empty">No training metrics yet — run the retrain-model workflow to generate them.</div>`;
+    el.innerHTML = `<div class="empty">No training metrics yet — run the retrain-model workflow.</div>`;
     return;
   }
-  const cur = h[h.length-1];
-  const prev = h.length>1 ? h[h.length-2] : null;
+  const cur = h[h.length-1], prev = h.length>1 ? h[h.length-2] : null;
   const dlt = (k,f=2) => {
     if (!prev || prev[k]==null || cur[k]==null) return "";
     const v = cur[k]-prev[k];
     return ` <span class="${v>=0?'pos':'neg'}" style="font-size:10px">(${v>=0?"+":""}${v.toFixed(f)})</span>`;
   };
-
-  // the headline comparison: what the model PROMISED vs what we GOT
-  const expP = cur.expected_P_long_pct;
   const realP = d.glp ? d.glp.P_realized_pct : null;
-  const gap = (expP!=null && realP!=null) ? (realP-expP) : null;
+  const expP  = cur.win_rate_pct;
+  const gap   = (expP!=null && realP!=null) ? (realP-expP) : null;
 
   el.innerHTML = `
   <div class="card glpmain">
-    <div class="formula">expected success rate, measured out-of-sample at the trading threshold</div>
+    <div class="formula">E = p_win·G − p_stop·L + p_timeout·r_timeout − c</div>
     <div class="glprow">
-      <div><div class="label">Expected P (long)</div>
-           <div class="value">${expP!=null?expP+"%":"—"}${dlt('expected_P_long_pct')}</div>
-           <div class="label">breakeven ${cur.p_star_pct ?? "—"}%</div></div>
-      <div><div class="label">Realised P (live)</div>
-           <div class="value ${realP!=null && expP!=null ? (realP>=expP?'pos':'neg') : ''}">${realP!=null?realP+"%":"—"}</div>
+      <div><div class="label">Expected win rate</div>
+           <div class="value">${expP!=null?expP.toFixed(1)+"%":"—"}${dlt('win_rate_pct')}</div>
+           <div class="label">true breakeven ${cur.true_breakeven_pct ?? "—"}%</div></div>
+      <div><div class="label">Realised (live)</div>
+           <div class="value ${realP!=null&&expP!=null?(realP>=expP?'pos':'neg'):''}">${realP!=null?realP+"%":"—"}</div>
            <div class="label">${gap!=null?(gap>=0?"+":"")+gap.toFixed(1)+"pp vs expected":"awaiting trades"}</div></div>
-      <div><div class="label">AUC long</div>
+      <div><div class="label">AUC (win)</div>
            <div class="value">${cur.auc_long!=null?cur.auc_long.toFixed(3):"—"}${dlt('auc_long',3)}</div>
            <div class="label">0.50 = no skill</div></div>
-      <div><div class="label">Expected E / trade</div>
-           <div class="value ${cur.expected_E_per_trade_pct>=0?'pos':'neg'}">${cur.expected_E_per_trade_pct!=null?pct(cur.expected_E_per_trade_pct):"—"}</div>
-           <div class="label">signal rate ${cur.signal_rate_pct ?? "—"}%</div></div>
+      <div><div class="label">E realised / trade</div>
+           <div class="value ${cur.E_realised_pct>=0?'pos':'neg'}">${cur.E_realised_pct!=null?pct(cur.E_realised_pct):"—"}</div>
+           <div class="label">~${cur.signals_per_year!=null?Math.round(cur.signals_per_year):"—"} signals/yr</div></div>
     </div>
-    ${gap!=null ? `<div class="verdict ${gap>=-2?'pos':'neg'}">${
-      gap>=-2 ? "realised P is tracking the model's expectation — fills are behaving"
-              : `realised P is ${Math.abs(gap).toFixed(1)}pp below expected — look at slippage, not the model`
-    }</div>` : ""}
-  </div>
-  ${h.length>1 ? `<div style="margin-top:12px">${table(
-    ["Trained","Data to","AUC L","Exp P","P*","Edge","E/trade","Names"],
-    h.slice().reverse().map(e=>[
-      e.trained_at ? e.trained_at.slice(0,10) : "—",
-      e.train_end ?? "—",
-      e.auc_long!=null?e.auc_long.toFixed(3):"—",
-      e.expected_P_long_pct!=null?e.expected_P_long_pct+"%":"—",
-      e.p_star_pct!=null?e.p_star_pct+"%":"—",
-      e.edge_vs_pstar_pp!=null?`<span class="${e.edge_vs_pstar_pp>0?'pos':'neg'}">${e.edge_vs_pstar_pp>0?"+":""}${e.edge_vs_pstar_pp}pp</span>`:"—",
-      e.expected_E_per_trade_pct!=null?pct(e.expected_E_per_trade_pct):"—",
-      e.n_names ?? "—"
-    ]), [0,0,1,1,1,1,1,1])}</div>` : ""}
-  ${d.calibration && d.calibration.curve_long && d.calibration.curve_long.length ? `
-  <div style="margin-top:12px">
-    <div class="card">
-      <div class="formula">calibration · softmax score → actual win rate</div>
-      <div class="barbadge" style="margin-bottom:10px">
-        ECE ${d.calibration.metrics_long.ece ?? "—"} ·
-        bias ${d.calibration.metrics_long.bias>=0?"+":""}${d.calibration.metrics_long.bias ?? "—"}
-        (${d.calibration.metrics_long.bias>0?"under":"over"}-confident) ·
-        base rate ${(d.calibration.metrics_long.base_rate*100).toFixed(1)}%
-      </div>
-      ${table(["Score","Actual win rate","Lift","N"],
-        d.calibration.curve_long.map(r=>[
-          `<span class="pnum dim">${r.predicted.toFixed(3)}</span>`,
-          `<span class="pnum ${r.observed>r.predicted?'pos':'neg'}">${(r.observed*100).toFixed(1)}%</span>`,
-          `<span class="pnum ${r.lift>1?'pos':'dim'}">${r.lift.toFixed(2)}×</span>`,
-          `<span class="pnum dim">${r.n}</span>`
-        ]), [1,1,1,1])}
+    <div class="verdict">
+      horizon ${cur.horizon ?? "—"}d · timeouts ${cur.timeout_pct ?? "—"}%
+      ${cur.timeout_pct>25?' <span class="neg">— high: barrier may be too wide for the horizon</span>':''}
+      · <a href="backtest.html" style="color:var(--accent)">full backtest log →</a>
     </div>
-  </div>` : ""}`;
+  </div>`;
 }
 
 function tiltCell(t) {

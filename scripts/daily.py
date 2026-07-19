@@ -89,6 +89,7 @@ def main():
               f"{len(state['open_positions'])} open positions.")
 
     _export_dashboard(state, signals, signal_date, meta, scores)
+    _publish_backtest()
 
 
 def _latest_ohlc(universe, start, end):
@@ -211,7 +212,7 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "model_trained_at": meta.get("trained_at"),
         "signal_date": signal_date,
-        "p_star": meta["p_star"],
+        "min_expectancy": meta.get("min_expectancy"),
         "barrier": {"up": meta["up"], "down": meta["down"], "horizon": meta["horizon"]},
         "equity": {
             "current": round(cur_eq, 2),
@@ -258,6 +259,22 @@ def _export_dashboard(state, signals, signal_date, meta, scores):
           f"({total_ret * 100:+.1f}%), {len(signals)} signals.")
 
 
+def _publish_backtest():
+    """Copy the training artifacts the backtest page reads into web/public."""
+    import shutil
+    src = ROOT / "model" / "backtest.json"
+    if src.exists():
+        shutil.copy(src, PUBLIC / "backtest.json")
+    h = ROOT / "model" / "training_history.json"
+    if h.exists():
+        try:
+            hist = json.loads(h.read_text())
+            if hist:
+                (PUBLIC / "training.json").write_text(json.dumps(hist[-1], indent=2))
+        except json.JSONDecodeError:
+            pass
+
+
 def _load_sweep():
     """The precision-vs-volume tradeoff from the last training."""
     h = ROOT / "model" / "training_history.json"
@@ -270,15 +287,17 @@ def _load_sweep():
     if not hist:
         return None
     m = hist[-1].get("metrics", {})
-    return {"sweep": m.get("sweep_long", []),
-            "sweep_short": m.get("sweep_short", []),
-            "recommended": m.get("recommended_long"),
-            "recommended_short": m.get("recommended_short"),
-            "precision_by_year": m.get("precision_by_year_long", {}),
-            "p_star_pct": m.get("p_star_pct"),
-            "base_rate_pct": m.get("base_rate_long_pct"),
-            "auc": m.get("auc_long"),
-            "auc_short": m.get("auc_short")}
+    ml, ms = m.get("long", {}), m.get("short", {})
+    return {"sweep": ml.get("sweep", []),
+            "sweep_short": ms.get("sweep", []),
+            "recommended": ml.get("recommended"),
+            "recommended_short": ms.get("recommended"),
+            "true_breakeven_pct": ml.get("true_breakeven_pct"),
+            "naive_pstar_pct": ml.get("naive_pstar_pct"),
+            "base": ml.get("base", {}),
+            "base_short": ms.get("base", {}),
+            "auc": ml.get("auc_win"),
+            "auc_short": ms.get("auc_win")}
 
 
 def _load_calibration_curve():
@@ -309,20 +328,22 @@ def _load_history():
     out = []
     for e in hist[-12:]:
         m = e.get("metrics", {})
+        ml, ms = m.get("long", {}), m.get("short", {})
+        rec = ml.get("recommended") or {}
         out.append({
             "trained_at": e.get("trained_at"),
             "train_end": e.get("train_end"),
             "n_samples": e.get("n_samples"),
             "n_names": e.get("n_names"),
-            "auc_long": m.get("auc_long"),
-            "auc_short": m.get("auc_short"),
-            "expected_P_long_pct": m.get("expected_P_long_pct"),
-            "expected_P_short_pct": m.get("expected_P_short_pct"),
-            "p_star_pct": m.get("p_star_pct"),
-            "edge_vs_pstar_pp": m.get("edge_vs_pstar_pp"),
-            "expected_E_per_trade_pct": m.get("expected_E_per_trade_pct"),
-            "signal_rate_pct": m.get("signal_rate_pct"),
-            "base_rate_long_pct": m.get("base_rate_long_pct"),
+            "horizon": e.get("horizon"),
+            "auc_long": ml.get("auc_win"),
+            "auc_short": ms.get("auc_win"),
+            "win_rate_pct": rec.get("win_rate_pct"),
+            "true_breakeven_pct": ml.get("true_breakeven_pct"),
+            "E_realised_pct": rec.get("E_realised_pct"),
+            "E_predicted_pct": rec.get("E_predicted_pct"),
+            "signals_per_year": rec.get("per_year"),
+            "timeout_pct": (ml.get("base") or {}).get("timeout_pct"),
         })
     return out
 

@@ -45,6 +45,7 @@ from qcs.features import build_features, cross_sectional_zscore
 from qcs.labels_side import side_outcome_labels, timeout_returns, outcome_distribution
 from evaluate_side import evaluate_side, print_report_side
 from evaluate import append_history, HISTORY
+from backtest_sim import simulate_history
 
 MODEL_DIR = Path(__file__).resolve().parent.parent / "model"
 MODEL_DIR.mkdir(exist_ok=True)
@@ -152,8 +153,27 @@ def main():
     }
     (MODEL_DIR / "meta.json").write_text(json.dumps(meta, indent=2))
 
+    # ---- historical portfolio simulation on the OOS predictions ----
+    print("\nRunning historical portfolio simulation (out-of-sample)...")
+    preds = {s: results[s]["oos_predictions"] for s in ("long", "short")
+             if "oos_predictions" in results[s]}
+    bt = simulate_history(preds, close, meta) if preds else None
+    if bt:
+        st = bt["stats"]
+        print(f"  {st['period_start']} -> {st['period_end']}  ({st['years']}y)")
+        print(f"  final equity  ${st['final_equity']:,.0f}  "
+              f"({st['total_return_pct']:+.1f}%, CAGR {st['cagr_pct']:+.1f}%)")
+        print(f"  Sharpe {st['sharpe']}  maxDD {st['max_drawdown_pct']}%  "
+              f"trades {st['n_trades']} ({st['trades_per_year']}/yr)")
+        print(f"  win rate {st['win_rate_pct']}%  avg win {st['avg_win_pct']}%  "
+              f"avg loss {st['avg_loss_pct']}%  PF {st['profit_factor']}")
+        bt_out = {"generated_at": meta["trained_at"], **bt,
+                  "trades": bt["trades"][-500:]}
+        (MODEL_DIR / "backtest.json").write_text(json.dumps(bt_out, indent=2))
+
     strip = lambda m: {k: v for k, v in m.items()
-                       if k not in ("cal_win", "cal_stop", "calibration_curve_win")}
+                       if k not in ("cal_win", "cal_stop", "calibration_curve_win",
+                                    "oos_predictions")}
     append_history({
         "trained_at": meta["trained_at"], "train_end": meta["train_end"],
         "n_samples": meta["n_samples"], "n_names": len(meta["universe"]),

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backtest · Barrier Signal</title>
+<style>
+  :root{--bg:#0a0e12;--panel:#11171d;--panel2:#161d25;--line:#232d38;--ink:#d4dce4;
+        --dim:#6b7885;--long:#3fb98a;--short:#e8654f;--accent:#e2b93b;--grid:#1a222b;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:"SF Mono","JetBrains Mono",Consolas,ui-monospace,monospace;
+       font-size:13px;line-height:1.5;padding:20px;max-width:1200px;margin:0 auto}
+  .head{display:flex;justify-content:space-between;align-items:baseline;
+        border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+  .title{font-size:18px;letter-spacing:.5px;font-weight:600}
+  .title .b{color:var(--accent)}
+  .back{color:var(--dim);text-decoration:none;font-size:11px;border:1px solid var(--line);
+        padding:5px 12px;border-radius:4px}
+  .back:hover{color:var(--ink);border-color:var(--dim)}
+  .meta{color:var(--dim);font-size:11px;text-align:right}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:13px}
+  .label{color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.8px}
+  .value{font-size:20px;margin-top:3px;font-weight:600}
+  .pos{color:var(--long)}.neg{color:var(--short)}.dim{color:var(--dim)}
+  .st{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);
+      margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+  .st::after{content:"";flex:1;height:1px;background:var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{color:var(--dim);text-align:right;font-weight:500;padding:6px 9px;border-bottom:1px solid var(--line);
+     font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:5px 9px;border-bottom:1px solid var(--grid)}
+  tr:hover td{background:var(--panel2)}
+  .tag{padding:1px 7px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase}
+  .tag.long{background:rgba(63,185,138,.15);color:var(--long)}
+  .tag.short{background:rgba(232,101,79,.15);color:var(--short)}
+  .tag.win{background:rgba(63,185,138,.12);color:var(--long)}
+  .tag.stop{background:rgba(232,101,79,.12);color:var(--short)}
+  .tag.timeout{background:rgba(107,120,133,.15);color:var(--dim)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
+  #eq{width:100%;height:300px;display:block}
+  .pnum{font-variant-numeric:tabular-nums}
+  .empty{color:var(--dim);padding:24px;text-align:center}
+  .note{color:var(--dim);font-size:10px;margin-top:8px;line-height:1.6}
+  .foot{color:var(--dim);font-size:10px;margin-top:28px;border-top:1px solid var(--line);
+        padding-top:12px;line-height:1.7}
+  .filter{display:flex;gap:6px;margin-bottom:8px}
+  .fbtn{background:var(--panel);border:1px solid var(--line);color:var(--dim);
+        padding:3px 10px;border-radius:3px;cursor:pointer;font-family:inherit;font-size:10px;
+        text-transform:uppercase;letter-spacing:.5px}
+  .fbtn.on{color:var(--accent);border-color:var(--accent)}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div>
+      <div class="title">BACKTEST <span class="b">▮</span> OUT-OF-SAMPLE HISTORY</div>
+      <div class="note" id="sub">—</div>
+    </div>
+    <div style="text-align:right">
+      <a class="back" href="index.html">← live desk</a>
+      <div class="meta" id="meta" style="margin-top:8px">loading…</div>
+    </div>
+  </div>
+
+  <div class="grid" id="kpi"></div>
+
+  <div class="st">Equity curve · simulated on walk-forward predictions</div>
+  <div class="card"><canvas id="eq"></canvas>
+    <div class="note">Every prediction driving this curve was made by a model that had
+      not seen the period it is trading. Fills are at the barrier price (optimistic);
+      the live paper desk applies gap slippage, so expect it to run below this.</div>
+  </div>
+
+  <div class="cols">
+    <div><div class="st">By exit reason</div><div id="reason"></div></div>
+    <div><div class="st">By side</div><div id="side"></div></div>
+  </div>
+
+  <div class="st">Training diagnostics · expectancy sweep</div>
+  <div class="cols">
+    <div id="sweepL"></div>
+    <div id="sweepS"></div>
+  </div>
+
+  <div class="st">Trade history</div>
+  <div class="filter">
+    <button class="fbtn on" data-f="all">all</button>
+    <button class="fbtn" data-f="win">wins</button>
+    <button class="fbtn" data-f="stop">stops</button>
+    <button class="fbtn" data-f="timeout">timeouts</button>
+  </div>
+  <div id="trades"></div>
+
+  <div class="foot" id="foot"></div>
+
+<script>
+let DATA=null, FILTER="all";
+const F=(n,d=2)=>n==null?"—":Number(n).toFixed(d);
+const pct=n=>n==null?"—":(n>=0?"+":"")+Number(n).toFixed(2)+"%";
+const cls=n=>n>=0?"pos":"neg";
+
+async function load(){
+  let bt=null, hist=null;
+  try{ bt=await (await fetch("backtest.json?_="+Date.now())).json(); }
+  catch(e){ document.getElementById("meta").textContent="no backtest yet — run retrain-model"; return; }
+  try{ hist=await (await fetch("training.json?_="+Date.now())).json(); }catch(e){}
+  DATA={bt,hist};
+
+  const s=bt.stats;
+  document.getElementById("sub").textContent =
+    `${s.period_start} → ${s.period_end} · ${s.years}y · $${s.start_capital.toLocaleString()} start`;
+  document.getElementById("meta").innerHTML =
+    `generated ${bt.generated_at?new Date(bt.generated_at).toLocaleString():"—"}`;
+
+  document.getElementById("kpi").innerHTML=[
+    ["Final equity","$"+Number(s.final_equity).toLocaleString(),cls(s.total_return_pct),pct(s.total_return_pct)],
+    ["CAGR",pct(s.cagr_pct),cls(s.cagr_pct),"vol "+F(s.vol_pct)+"%"],
+    ["Sharpe",F(s.sharpe),s.sharpe>=0?"pos":"neg","maxDD "+F(s.max_drawdown_pct)+"%"],
+    ["Win rate",F(s.win_rate_pct,1)+"%","", s.n_trades+" trades"],
+    ["Expectancy",pct(s.expectancy_pct),cls(s.expectancy_pct),"PF "+F(s.profit_factor)],
+  ].map(k=>`<div class="card"><div class="label">${k[0]}</div>
+      <div class="value ${k[2]}">${k[1]}</div>
+      <div class="label" style="margin-top:2px">${k[3]}</div></div>`).join("");
+
+  drawEq(bt.equity_curve||[], s.start_capital);
+
+  document.getElementById("reason").innerHTML = tbl(
+    ["Reason","N","% of trades","Avg net"],
+    Object.entries(s.by_reason||{}).map(([k,v])=>[
+      `<span class="tag ${k}">${k}</span>`, v.n, v.pct+"%",
+      `<span class="pnum ${cls(v.avg_net_pct)}">${pct(v.avg_net_pct)}</span>`]),[0,1,1,1]);
+
+  document.getElementById("side").innerHTML = tbl(
+    ["Side","N","Win rate","Avg net","Total P&L"],
+    Object.entries(s.by_side||{}).map(([k,v])=>[
+      `<span class="tag ${k}">${k}</span>`, v.n, v.win_rate_pct+"%",
+      `<span class="pnum ${cls(v.avg_net_pct)}">${pct(v.avg_net_pct)}</span>`,
+      `<span class="pnum ${cls(v.total_pnl)}">$${Number(v.total_pnl).toLocaleString()}</span>`]),[0,1,1,1,1]);
+
+  ["long","short"].forEach((sd,i)=>{
+    const m=hist&&hist.metrics?hist.metrics[sd]:null;
+    const el=document.getElementById(i===0?"sweepL":"sweepS");
+    if(!m||!m.sweep){el.innerHTML=`<div class="empty">no ${sd} sweep</div>`;return;}
+    const b=m.base||{};
+    el.innerHTML=`<div class="note" style="margin-bottom:6px">
+        <b style="color:var(--ink)">${sd.toUpperCase()}</b> · outcomes WIN ${b.win_pct}% /
+        STOP ${b.stop_pct}% / TIMEOUT ${b.timeout_pct}% ·
+        true breakeven ${m.true_breakeven_pct}% (naive P* ${m.naive_pstar_pct}% would be wrong) ·
+        AUC ${F(m.auc_win,3)}</div>` + tbl(
+      ["min E","N","/yr","win%","E pred","E real"],
+      (m.sweep||[]).map(r=>{
+        const rec=m.recommended&&r.min_E_pct===m.recommended.min_E_pct;
+        return [`<span class="pnum ${rec?'':'dim'}">${F(r.min_E_pct)}%${rec?" ◄":""}</span>`,
+          `<span class="pnum dim">${r.n_signals}</span>`,
+          `<span class="pnum dim">${F(r.per_year,0)}</span>`,
+          `<span class="pnum">${F(r.win_rate_pct,1)}%</span>`,
+          `<span class="pnum dim">${pct(r.E_predicted_pct)}</span>`,
+          `<span class="pnum ${cls(r.E_realised_pct)}">${pct(r.E_realised_pct)}</span>`];
+      }),[1,1,1,1,1,1]);
+  });
+
+  renderTrades();
+  document.getElementById("foot").innerHTML =
+    `Simulation uses purged walk-forward predictions only — no in-sample data. `+
+    `Barrier +${(bt.stats&&DATA.hist&&DATA.hist.horizon)?"":""}. `+
+    `Survivorship bias remains (universe is today's names), so treat this as an optimistic upper bound. `+
+    `Not investment advice.`;
+}
+
+function renderTrades(){
+  const t=(DATA.bt.trades||[]).slice().reverse()
+    .filter(x=>FILTER==="all"||x.reason===FILTER);
+  document.getElementById("trades").innerHTML = t.length? tbl(
+    ["Ticker","Side","In","Out","Days","Exit","Entry","Exit px","Net","P&L","E@entry"],
+    t.slice(0,150).map(x=>[
+      x.ticker,`<span class="tag ${x.side}">${x.side}</span>`,x.entry_date,x.exit_date,
+      `<span class="pnum dim">${x.days}</span>`,`<span class="tag ${x.reason}">${x.reason}</span>`,
+      `<span class="pnum dim">${F(x.entry_price)}</span>`,
+      `<span class="pnum dim">${F(x.exit_price)}</span>`,
+      `<span class="pnum ${cls(x.net_pct)}">${pct(x.net_pct)}</span>`,
+      `<span class="pnum ${cls(x.pnl)}">$${F(x.pnl,0)}</span>`,
+      `<span class="pnum dim">${F(x.E_at_entry_pct)}%</span>`
+    ]),[0,0,0,0,1,0,1,1,1,1,1]) : `<div class="empty">no trades match</div>`;
+}
+
+function tbl(h,rows,al){
+  return `<table><thead><tr>${h.map((x,i)=>`<th style="text-align:${al[i]?'right':'left'}">${x}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(r=>"<tr>"+r.map((c,i)=>`<td style="text-align:${al[i]?'right':'left'}">${c}</td>`).join("")+"</tr>").join("")}</tbody></table>`;
+}
+
+function drawEq(curve,start){
+  const cv=document.getElementById("eq"),dpr=devicePixelRatio||1;
+  const W=cv.clientWidth,H=300;cv.width=W*dpr;cv.height=H*dpr;
+  const x=cv.getContext("2d");x.scale(dpr,dpr);x.clearRect(0,0,W,H);
+  if(curve.length<2){x.fillStyle="#6b7885";x.font="12px monospace";x.fillText("no curve",12,H/2);return;}
+  const v=curve.map(p=>p.equity),mn=Math.min(...v),mx=Math.max(...v);
+  const pad=(mx-mn)*.08||1,lo=Math.max(0,mn-pad),hi=mx+pad;
+  const X=i=>52+(W-66)*i/(curve.length-1),Y=q=>16+(H-46)*(1-(q-lo)/(hi-lo));
+  x.strokeStyle="#1a222b";x.fillStyle="#6b7885";x.font="10px monospace";
+  for(let g=0;g<=4;g++){const q=lo+(hi-lo)*g/4,y=Y(q);
+    x.beginPath();x.moveTo(52,y);x.lineTo(W-14,y);x.stroke();
+    x.fillText("$"+(q/1000).toFixed(0)+"k",2,y+3);}
+  x.strokeStyle="#3a3020";x.setLineDash([3,3]);x.beginPath();
+  x.moveTo(52,Y(start));x.lineTo(W-14,Y(start));x.stroke();x.setLineDash([]);
+  const up=v[v.length-1]>=start;
+  x.lineWidth=1.6;x.strokeStyle=up?"#3fb98a":"#e8654f";x.beginPath();
+  curve.forEach((p,i)=>i?x.lineTo(X(i),Y(p.equity)):x.moveTo(X(i),Y(p.equity)));x.stroke();
+  const g2=x.createLinearGradient(0,16,0,H-30),c=up?"63,185,138":"232,101,79";
+  g2.addColorStop(0,`rgba(${c},.16)`);g2.addColorStop(1,`rgba(${c},0)`);
+  x.lineTo(X(curve.length-1),H-30);x.lineTo(X(0),H-30);x.closePath();x.fillStyle=g2;x.fill();
+  x.fillStyle="#6b7885";x.fillText(curve[0].date,52,H-12);
+  x.textAlign="right";x.fillText(curve[curve.length-1].date,W-14,H-12);x.textAlign="left";
+}
+
+document.querySelectorAll(".fbtn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".fbtn").forEach(z=>z.classList.remove("on"));
+  b.classList.add("on");FILTER=b.dataset.f;renderTrades();});
+addEventListener("resize",()=>DATA&&drawEq(DATA.bt.equity_curve||[],DATA.bt.stats.start_capital));
+load();
+</script>
+</body>
+</html>

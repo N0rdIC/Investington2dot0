@@ -128,8 +128,12 @@ def evaluate_side(X, y, r_timeout, cfg, fit_fn, G, L, side="long", n_splits=4):
         at = [r for r in ok if r["min_E_pct"] >= target * 100]
         rec = at[0] if at else max(ok, key=lambda r: r["min_E_pct"])
 
+    # OOS predictions with expectancy attached, for the historical simulator
+    oos = pd.DataFrame({"p_win": cw, "p_stop": cs, "E": E_pred}, index=P.index)
+
     return {
         "side": side,
+        "oos_predictions": oos,
         "auc_win": round(_auc(P["p_win"], hit_win), 4),
         "auc_stop": round(_auc(P["p_stop"], hit_stop), 4),
         "base": base,
