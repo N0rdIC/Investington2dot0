@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-21T23:11:38.536037+00:00",
+  "updated_at": "2026-07-22T23:15:57.350198+00:00",
   "model_trained_at": "2026-07-19T22:08:36.807989+00:00",
   "signal_date": "2026-06-30",
   "min_expectancy": 0.005,
@@ -28,102 +28,109 @@
   "top_longs": [
     {
       "ticker": "XPEV",
-      "p": 0.451,
+      "p": 0.441,
       "p_stop": 0.33,
       "sigma_d_pct": 3.15,
-      "E_pct": 0.441
+      "E_pct": 0.395
     },
     {
       "ticker": "LRCX",
       "p": 0.464,
-      "p_stop": 0.349,
+      "p_stop": 0.356,
       "sigma_d_pct": 4.15,
-      "E_pct": 0.408
+      "E_pct": 0.369
     },
     {
       "ticker": "KLAC",
       "p": 0.464,
-      "p_stop": 0.352,
+      "p_stop": 0.356,
       "sigma_d_pct": 4.17,
-      "E_pct": 0.393
+      "E_pct": 0.369
     },
     {
       "ticker": "GOLD",
-      "p": 0.424,
+      "p": 0.422,
       "p_stop": 0.32,
       "sigma_d_pct": 3.76,
-      "E_pct": 0.37
+      "E_pct": 0.358
     },
     {
       "ticker": "AMAT",
       "p": 0.464,
-      "p_stop": 0.364,
+      "p_stop": 0.363,
       "sigma_d_pct": 3.91,
-      "E_pct": 0.33
+      "E_pct": 0.334
+    },
+    {
+      "ticker": "SOFI",
+      "p": 0.42,
+      "p_stop": 0.33,
+      "sigma_d_pct": 3.36,
+      "E_pct": 0.293
+    },
+    {
+      "ticker": "NET",
+      "p": 0.419,
+      "p_stop": 0.331,
+      "sigma_d_pct": 4.67,
+      "E_pct": 0.288
     },
     {
       "ticker": "SHOP",
       "p": 0.422,
-      "p_stop": 0.33,
+      "p_stop": 0.333,
       "sigma_d_pct": 3.89,
-      "E_pct": 0.303
-    },
-    {
-      "ticker": "SOFI",
-      "p": 0.421,
-      "p_stop": 0.33,
-      "sigma_d_pct": 3.36,
-      "E_pct": 0.299
-    },
-    {
-      "ticker": "NET",
-      "p": 0.421,
-      "p_stop": 0.33,
-      "sigma_d_pct": 4.67,
-      "E_pct": 0.299
-    },
-    {
-      "ticker": "BIDU",
-      "p": 0.422,
-      "p_stop": 0.334,
-      "sigma_d_pct": 3.31,
-      "E_pct": 0.283
+      "E_pct": 0.287
     },
     {
       "ticker": "AMD",
       "p": 0.465,
-      "p_stop": 0.378,
+      "p_stop": 0.385,
       "sigma_d_pct": 4.61,
-      "E_pct": 0.264
+      "E_pct": 0.226
+    },
+    {
+      "ticker": "BIDU",
+      "p": 0.422,
+      "p_stop": 0.346,
+      "sigma_d_pct": 3.31,
+      "E_pct": 0.219
     }
   ],
   "top_shorts": [
     {
       "ticker": "CHPT",
-      "p": 0.49,
-      "p_stop": 0.441,
+      "p": 0.492,
+      "p_stop": 0.434,
       "sigma_d_pct": 4.77,
-      "E_pct": 0.033
+      "E_pct": 0.073
     },
     {
       "ticker": "TEAM",
-      "p": 0.463,
-      "p_stop": 0.428,
+      "p": 0.465,
+      "p_stop": 0.422,
       "sigma_d_pct": 5.16,
-      "E_pct": -0.047
+      "E_pct": -0.003
+    },
+    {
+      "ticker": "LCID",
+      "p": 0.489,
+      "p_stop": 0.464,
+      "sigma_d_pct": 4.91,
+      "E_pct": -0.084
     },
     {
       "ticker": "AI",
       "p": 0.445,
       "p_stop": 0.417,
       "sigma_d_pct": 4.26,
-      "E_pct": -0.086
+      "E_pct": -0.085
     },
     {
-      "ticker": "LCID",
-      "p": 0.486,
-      "p_stop": 0.465,
-      "sigma_d_pct": 4.91,
+      "ticker": "AMC",
+      "p": 0.485,
+      "p_stop": 0.464,
+      "sigma_d_pct": 5.92,
       "E_pct": -0.103
     },
     {
@@ -131,42 +138,35 @@
       "p": 0.484,
       "p_stop": 0.464,
       "sigma_d_pct": 5.46,
-      "E_pct": -0.108
+      "E_pct": -0.105
     },
     {
-      "ticker": "AMC",
+      "ticker": "NTLA",
       "p": 0.484,
       "p_stop": 0.465,
-      "sigma_d_pct": 5.92,
-      "E_pct": -0.112
+      "sigma_d_pct": 5.26,
+      "E_pct": -0.113
     },
     {
       "ticker": "LUNR",
       "p": 0.484,
-      "p_stop": 0.466,
-      "sigma_d_pct": 7.87,
-      "E_pct": -0.115
-    },
-    {
-      "ticker": "NTLA",
-      "p": 0.479,
       "p_stop": 0.465,
-      "sigma_d_pct": 5.26,
-      "E_pct": -0.14
+      "sigma_d_pct": 7.87,
+      "E_pct": -0.113
     },
     {
       "ticker": "RGTI",
-      "p": 0.478,
+      "p": 0.484,
       "p_stop": 0.465,
       "sigma_d_pct": 6.43,
-      "E_pct": -0.146
+      "E_pct": -0.113
     },
     {
       "ticker": "QBTS",
-      "p": 0.477,
-      "p_stop": 0.466,
+      "p": 0.483,
+      "p_stop": 0.465,
       "sigma_d_pct": 6.84,
-      "E_pct": -0.156
+      "E_pct": -0.119
     }
   ],
   "gate_long_pct": 0,
