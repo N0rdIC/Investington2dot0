@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-18T00:17:09.105527+00:00",
+  "updated_at": "2026-09-19T00:20:25.470157+00:00",
   "model_trained_at": "2026-07-19T22:08:36.807989+00:00",
   "signal_date": "2026-06-30",
   "min_expectancy": 0.005,
@@ -28,145 +28,145 @@
   "top_longs": [
     {
       "ticker": "XPEV",
-      "p": 0.441,
+      "p": 0.447,
       "p_stop": 0.33,
       "sigma_d_pct": 3.15,
-      "E_pct": 0.395
+      "E_pct": 0.423
     },
     {
       "ticker": "LRCX",
       "p": 0.464,
-      "p_stop": 0.355,
+      "p_stop": 0.349,
       "sigma_d_pct": 4.15,
-      "E_pct": 0.375
+      "E_pct": 0.41
     },
     {
       "ticker": "KLAC",
       "p": 0.464,
-      "p_stop": 0.356,
+      "p_stop": 0.349,
       "sigma_d_pct": 4.17,
-      "E_pct": 0.369
+      "E_pct": 0.405
     },
     {
       "ticker": "GOLD",
       "p": 0.422,
       "p_stop": 0.32,
       "sigma_d_pct": 3.76,
-      "E_pct": 0.358
+      "E_pct": 0.36
     },
     {
       "ticker": "AMAT",
       "p": 0.464,
-      "p_stop": 0.363,
+      "p_stop": 0.364,
       "sigma_d_pct": 3.91,
-      "E_pct": 0.334
-    },
-    {
-      "ticker": "SOFI",
-      "p": 0.42,
-      "p_stop": 0.33,
-      "sigma_d_pct": 3.36,
-      "E_pct": 0.293
-    },
-    {
-      "ticker": "NET",
-      "p": 0.419,
-      "p_stop": 0.331,
-      "sigma_d_pct": 4.67,
-      "E_pct": 0.288
+      "E_pct": 0.329
     },
     {
       "ticker": "SHOP",
-      "p": 0.422,
-      "p_stop": 0.333,
+      "p": 0.423,
+      "p_stop": 0.332,
       "sigma_d_pct": 3.89,
-      "E_pct": 0.287
+      "E_pct": 0.301
+    },
+    {
+      "ticker": "NET",
+      "p": 0.421,
+      "p_stop": 0.33,
+      "sigma_d_pct": 4.67,
+      "E_pct": 0.299
+    },
+    {
+      "ticker": "SOFI",
+      "p": 0.421,
+      "p_stop": 0.33,
+      "sigma_d_pct": 3.36,
+      "E_pct": 0.299
     },
     {
       "ticker": "AMD",
       "p": 0.465,
-      "p_stop": 0.385,
+      "p_stop": 0.378,
       "sigma_d_pct": 4.61,
-      "E_pct": 0.226
+      "E_pct": 0.264
     },
     {
       "ticker": "BIDU",
       "p": 0.422,
-      "p_stop": 0.346,
+      "p_stop": 0.34,
       "sigma_d_pct": 3.31,
-      "E_pct": 0.221
+      "E_pct": 0.253
     }
   ],
   "top_shorts": [
     {
       "ticker": "CHPT",
-      "p": 0.492,
-      "p_stop": 0.434,
+      "p": 0.489,
+      "p_stop": 0.443,
       "sigma_d_pct": 4.77,
-      "E_pct": 0.073
+      "E_pct": 0.019
     },
     {
       "ticker": "TEAM",
-      "p": 0.465,
-      "p_stop": 0.422,
+      "p": 0.463,
+      "p_stop": 0.429,
       "sigma_d_pct": 5.16,
-      "E_pct": -0.003
-    },
-    {
-      "ticker": "LCID",
-      "p": 0.489,
-      "p_stop": 0.464,
-      "sigma_d_pct": 4.91,
-      "E_pct": -0.084
+      "E_pct": -0.051
     },
     {
       "ticker": "AI",
       "p": 0.445,
       "p_stop": 0.417,
       "sigma_d_pct": 4.26,
-      "E_pct": -0.085
+      "E_pct": -0.086
     },
     {
-      "ticker": "AMC",
-      "p": 0.485,
-      "p_stop": 0.464,
-      "sigma_d_pct": 5.92,
+      "ticker": "LCID",
+      "p": 0.486,
+      "p_stop": 0.465,
+      "sigma_d_pct": 4.91,
       "E_pct": -0.103
     },
     {
       "ticker": "MSTR",
       "p": 0.484,
-      "p_stop": 0.463,
+      "p_stop": 0.465,
       "sigma_d_pct": 5.46,
-      "E_pct": -0.104
+      "E_pct": -0.111
     },
     {
-      "ticker": "NTLA",
+      "ticker": "AMC",
       "p": 0.484,
       "p_stop": 0.465,
-      "sigma_d_pct": 5.26,
-      "E_pct": -0.113
+      "sigma_d_pct": 5.92,
+      "E_pct": -0.111
     },
     {
       "ticker": "LUNR",
       "p": 0.484,
-      "p_stop": 0.465,
+      "p_stop": 0.466,
       "sigma_d_pct": 7.87,
-      "E_pct": -0.113
+      "E_pct": -0.116
+    },
+    {
+      "ticker": "NTLA",
+      "p": 0.48,
+      "p_stop": 0.465,
+      "sigma_d_pct": 5.26,
+      "E_pct": -0.135
     },
     {
       "ticker": "RGTI",
-      "p": 0.484,
+      "p": 0.478,
       "p_stop": 0.465,
       "sigma_d_pct": 6.43,
-      "E_pct": -0.113
+      "E_pct": -0.146
     },
     {
       "ticker": "QBTS",
-      "p": 0.483,
-      "p_stop": 0.465,
+      "p": 0.476,
+      "p_stop": 0.466,
       "sigma_d_pct": 6.84,
-      "E_pct": -0.119
+      "E_pct": -0.159
     }
   ],
   "gate_long_pct": 0,
